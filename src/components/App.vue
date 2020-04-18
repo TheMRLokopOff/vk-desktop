@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { reactive, computed, onMounted, watch } from 'vue';
+import { defineComponent, reactive, computed, onMounted, watch } from 'vue';
 import router from 'js/router';
 import store from 'js/store';
 import vkapi from 'js/vkapi';
@@ -22,8 +22,8 @@ import { fields, concatProfiles } from 'js/utils';
 import { addNotificationsTimer, parseMessage, parseConversation } from 'js/messages';
 import longpoll from 'js/longpoll';
 
-import 'src/css/shared.css';
-import 'src/css/colors.css';
+import 'css/shared.css';
+import 'css/colors.css';
 
 import Titlebar from './Titlebar.vue';
 import MainMenu from './MainMenu.vue';
@@ -37,7 +37,7 @@ window.router = router;
 window.longpoll = longpoll;
 window.request = request;
 
-export default {
+export default defineComponent({
   components: {
     Titlebar,
     MainMenu,
@@ -98,5 +98,5 @@ export default {
 
     return state;
   }
-};
+});
 </script>

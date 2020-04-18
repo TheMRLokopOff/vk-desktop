@@ -2,8 +2,19 @@ import electron from 'electron';
 
 const win = electron.remote.getCurrentWindow();
 
+type obj = { [key: string]: any };
+
+interface StorageOptions {
+  name: string
+  defaults: object
+  beforeSave?(data: obj): void
+}
+
 class Storage {
-  constructor({ name, defaults, beforeSave }) {
+  name: string;
+  data: obj;
+
+  constructor({ name, defaults, beforeSave }: StorageOptions) {
     const storageData = JSON.parse(localStorage.getItem(name) || '{}');
 
     this.name = name;

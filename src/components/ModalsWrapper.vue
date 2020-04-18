@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import { toRefs } from 'vue';
+import { defineComponent, toRefs } from 'vue';
 import { modalsState, closeModal } from 'js/modals';
 
 const modalComponents = {};
@@ -30,7 +30,7 @@ for (const name of modalNames) {
   modalComponents[name] = require(`./modals/${name}.vue`).default;
 }
 
-export default {
+export default defineComponent({
   components: modalComponents,
 
   setup() {
@@ -62,7 +62,7 @@ export default {
       onEscape
     };
   }
-};
+});
 </script>
 
 <style>

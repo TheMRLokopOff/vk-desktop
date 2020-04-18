@@ -6,9 +6,11 @@ import { openModal } from './modals';
 
 export const version = '5.123';
 
-const errorHandlers = {};
+type ErrorHandler = (context: { [key: string]: any }) => void;
 
-function addErrorHandler(codes, fn) {
+const errorHandlers: { [key: string]: ErrorHandler } = {};
+
+function addErrorHandler(codes: number[], fn: ErrorHandler) {
   for (const code of codes) {
     errorHandlers[code] = fn;
   }
@@ -72,9 +74,11 @@ addErrorHandler([14], ({ name, params, data, resolve, reject }) => {
 });
 
 addErrorHandler([17], async ({ data, reject }) => {
-  const { data: redirectPage } = await request(data.error.redirect_uri, { raw: true });
-  const goCaptchaLink = 'https://m.vk.com' + redirectPage.match(/<div class="fi_row"><a href="(.+?)" rel="noopener">/)[1];
-  const { data: firstCaptchaPage } = await request(goCaptchaLink, { raw: true });
+  const { data: redirectPage } = await request<string>(data.error.redirect_uri, { raw: true });
+  const goCaptchaLink = 'https://m.vk.com' + redirectPage.match(
+    /<div class="fi_row"><a href="(.+?)" rel="noopener">/
+  )[1];
+  const { data: firstCaptchaPage } = await request<string>(goCaptchaLink, { raw: true });
   let success = false;
   let captchaPage = firstCaptchaPage;
 
@@ -86,7 +90,7 @@ addErrorHandler([17], async ({ data, reject }) => {
       openModal('captcha', {
         src: `https://m.vk.com/captcha.php?sid=${captchaSid}`,
         async send(code) {
-          const res = await request({
+          const res = await request<string>({
             host: 'm.vk.com',
             path: sendUrl,
             method: 'POST'
@@ -113,23 +117,32 @@ addErrorHandler([17], async ({ data, reject }) => {
   }
 });
 
-function vkapi(name, params, { android, vkme } = {}) {
-  return new Promise(async (resolve, reject) => {
+type Name = string;
+type Params = { [key: string]: any };
+type Platform = { android?: boolean, vkme?: boolean };
+
+interface VkapiRequestResult<MethodType> {
+  response: MethodType
+  error: any
+}
+
+function vkapi<MethodType>(name: Name, params: Params, platform: Platform = {}) {
+  return new Promise<MethodType>(async (resolve, reject) => {
     const user = store.getters['users/user'];
 
     params = {
-      access_token: user && (android ? user.android_token : user.access_token),
+      access_token: user && (platform.android ? user.android_token : user.access_token),
       lang: 'ru',
       v: version,
       ...params
     };
 
-    const { data } = await request({
-      host: vkme ? 'api.vk.me' : 'api.vk.com',
+    const { data } = await request<VkapiRequestResult<MethodType>>({
+      host: platform.vkme ? 'api.vk.me' : 'api.vk.com',
       path: `/method/${name}`,
       method: 'POST',
       headers: {
-        'User-Agent': android ? AndroidUserAgent : VKDesktopUserAgent
+        'User-Agent': platform.android ? AndroidUserAgent : VKDesktopUserAgent
       }
     }, {
       postData: querystring.stringify(params)
@@ -149,15 +162,21 @@ function vkapi(name, params, { android, vkme } = {}) {
   });
 }
 
-const methods = [];
+interface Method {
+  execute<MethodType>(): Promise<MethodType>
+  resolve(response: any): void
+  reject(error: any): void
+}
+
+const methods: Method[] = [];
 let inWork = false;
 
 async function executeMethod() {
-  const [{ data, resolve, reject }] = methods;
+  const [{ execute, resolve, reject }] = methods;
   let shift = true;
 
   try {
-    resolve(await vkapi(...data));
+    resolve(await execute());
   } catch (err) {
     if (err) {
       reject(err);
@@ -179,9 +198,13 @@ async function executeMethod() {
   }
 }
 
-export default function(...data) {
-  return new Promise((resolve, reject) => {
-    methods.push({ data, resolve, reject });
+export default function<MethodType>(name: Name, params: Params, platform: Platform = {}) {
+  return new Promise<MethodType>((resolve, reject) => {
+    methods.push({
+      execute: <MethodType>() => vkapi<MethodType>(name, params, platform),
+      resolve,
+      reject
+    });
 
     if (!inWork) {
       inWork = true;

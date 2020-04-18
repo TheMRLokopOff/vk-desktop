@@ -15,10 +15,10 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import electron from 'electron';
 
-export default {
+export default defineComponent({
   setup() {
     const win = electron.remote.getCurrentWindow();
     const maximized = ref(win.isMaximized());
@@ -54,7 +54,7 @@ export default {
       }
     };
   }
-};
+});
 </script>
 
 <style>

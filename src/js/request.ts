@@ -1,11 +1,39 @@
 import { promises as dns } from 'dns';
+import http from 'http';
 import https from 'https';
 import { timer } from './utils';
 
-function request(requestParams, params = {}) {
-  return new Promise((resolve, reject) => {
+type RequestOptions = string | https.RequestOptions;
+
+interface RequestParams {
+  raw?: boolean
+  timeout?: number
+  postData?: string
+  multipart?: {
+    [key: string]: {
+      filename: string
+      contentType: string
+      value: NodeJS.ReadableStream
+    }
+  }
+  pipe?: NodeJS.WritableStream
+  progress?(ProgressOptions: {
+    size: number,
+    downloaded: number,
+    progress: number
+  }): void
+}
+
+interface RequestResult<ResponseType> {
+  data: ResponseType
+  headers: http.IncomingHttpHeaders
+  statusCode: number
+}
+
+function request<ResponseType>(requestParams: RequestOptions, params: RequestParams = {}) {
+  return new Promise<RequestResult<ResponseType>>((resolve, reject) => {
     const req = https.request(requestParams, (res) => {
-      const chunks = [];
+      const chunks: Uint8Array[] = [];
       const MB = 1 << 20;
       const contentLength = +res.headers['content-length'];
       let loadedLength = 0;
@@ -34,14 +62,10 @@ function request(requestParams, params = {}) {
       });
 
       res.on('end', () => {
-        let data = String(Buffer.concat(chunks));
-
-        if (!params.raw) {
-          data = JSON.parse(data);
-        }
+        const raw = String(Buffer.concat(chunks));
 
         resolve({
-          data,
+          data: params.raw ? raw : JSON.parse(raw),
           headers: res.headers,
           statusCode: res.statusCode
         });
@@ -62,14 +86,7 @@ function request(requestParams, params = {}) {
   });
 }
 
-// multipart: {
-//   photo: {
-//     value: fs.createReadStream(pathToFile),
-//     filename: 'photo.png',
-//     contentType: 'image/png'
-//   }
-// }
-async function sendMultipart(req, files) {
+async function sendMultipart(req: http.ClientRequest, files: RequestParams['multipart']) {
   const names = Object.keys(files);
   const boundary = Math.random().toString(16);
 
@@ -103,7 +120,7 @@ async function sendMultipart(req, files) {
 
 // Промис сохраняется для того, чтобы при дальнейших вызовах request
 // не создавался новый промис, а ожидалось завершение созданного ранее
-let waitConnectionPromise;
+let waitConnectionPromise: Promise<void>;
 
 async function waitConnection() {
   while (true) {
@@ -123,10 +140,10 @@ async function waitConnection() {
   }
 }
 
-export default async function(...data) {
+export default async function<ResponseType>(options: RequestOptions, params?: RequestParams) {
   while (true) {
     try {
-      return await request(...data);
+      return await request<ResponseType>(options, params);
     } catch (err) {
       if (!waitConnectionPromise) {
         waitConnectionPromise = waitConnection();

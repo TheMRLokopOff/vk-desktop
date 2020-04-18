@@ -10,7 +10,7 @@ function processCopy(value) {
   return value;
 }
 
-function copyArray(arr) {
+function copyArray(arr: any[]) {
   const newArr = [];
 
   for (let i = 0; i < arr.length; i++) {
@@ -20,8 +20,8 @@ function copyArray(arr) {
   return newArr;
 }
 
-export default function copyObject(obj) {
-  const newObj = {};
+export default function copyObject(obj: { [key: string]: any }) {
+  const newObj: { [key: string]: any } = {};
 
   for (const key in obj) {
     newObj[key] = processCopy(obj[key]);

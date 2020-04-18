@@ -22,9 +22,9 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 
-export default {
+export default defineComponent({
   props: ['color'],
 
   setup(props) {
@@ -56,7 +56,7 @@ export default {
       addRipple
     };
   }
-};
+});
 </script>
 
 <style>

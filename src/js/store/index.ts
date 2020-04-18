@@ -1,4 +1,5 @@
-import { createStore } from 'vuex';
+// @ts-ignore
+import { createStore, MutationPayload } from 'vuex';
 import { settingsStorage, usersStorage } from './Storage';
 
 import rootModule from './modules/index';
@@ -6,7 +7,7 @@ import messages from './modules/messages';
 import settings from './modules/settings';
 import users from './modules/users';
 
-const store = createStore({
+const store: any = createStore({
   ...rootModule,
   modules: {
     messages,
@@ -15,7 +16,7 @@ const store = createStore({
   }
 });
 
-store.subscribe(({ type }, state) => {
+store.subscribe(({ type }: MutationPayload, state: any) => {
   if (/^settings\//.test(type)) {
     settingsStorage.update(state.settings);
   } else if (/^users\//.test(type)) {

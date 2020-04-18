@@ -3,15 +3,16 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import store from 'js/store';
 
-export default {
+export default defineComponent({
   methods: {
     openMenu() {
       store.commit('setMenuState', true);
     }
   }
-};
+});
 </script>
 
 <style>

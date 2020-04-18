@@ -6,8 +6,9 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { VueLoaderPlugin } = require('vue-loader');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const TerserWebpackPlugin = require('terser-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
-module.exports = function(env, { mode }) {
+module.exports = function(env, { mode = 'development' } = {}) {
   const isDev = mode === 'development';
 
   return {
@@ -36,9 +37,10 @@ module.exports = function(env, { mode }) {
         })
       ]
     },
-    entry: './src/main.js',
+    entry: './src/main.ts',
     output: {
-      publicPath: 'http://localhost:8080/dist'
+      publicPath: 'http://localhost:8080/dist',
+      pathinfo: false
     },
     devServer: {
       clientLogLevel: 'silent',
@@ -59,7 +61,17 @@ module.exports = function(env, { mode }) {
       rules: [
         {
           test: /\.vue$/,
-          loader: 'vue-loader'
+          loader: 'vue-loader',
+          exclude: /node_modules/
+        },
+        {
+          test: /\.ts$/,
+          loader: 'ts-loader',
+          options: {
+            appendTsSuffixTo: [/\.vue$/],
+            transpileOnly: true
+          },
+          exclude: /node_modules/
         },
         {
           test: /\.css$/,
@@ -84,6 +96,7 @@ module.exports = function(env, { mode }) {
       ]
     },
     plugins: [
+      new ForkTsCheckerWebpackPlugin(),
       new VueLoaderPlugin(),
       new MiniCssExtractPlugin({ filename: '[name].css' }),
       new CopyWebpackPlugin([
@@ -92,12 +105,12 @@ module.exports = function(env, { mode }) {
       ])
     ],
     resolve: {
-      alias: {
-        src: path.resolve(__dirname, 'src'),
-        js: path.resolve(__dirname, 'src/js/'),
-        assets: path.resolve(__dirname, 'src/assets/'),
-        'package-json': path.resolve(__dirname, 'package.json')
-      }
+      extensions: ['.js', '.ts'],
+      symlinks: false,
+      alias: ['assets', 'css', 'js', 'lang', 'types'].reduce((alias, name) => {
+        alias[name] = path.resolve(__dirname, 'src/' + name);
+        return alias;
+      }, {})
     }
   };
 };

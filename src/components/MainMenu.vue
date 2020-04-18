@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import { reactive, computed, toRefs } from 'vue';
+import { defineComponent, reactive, computed, toRefs } from 'vue';
 import router from 'js/router';
 import store from 'js/store';
 import { onTransitionEnd, convertCount } from 'js/utils';
@@ -69,7 +69,7 @@ import Ripple from './UI/Ripple.vue';
 import Icon from './UI/Icon.vue';
 import VKText from './UI/VKText.vue';
 
-export default {
+export default defineComponent({
   components: {
     Ripple,
     Icon,
@@ -127,7 +127,7 @@ export default {
       openModalFromMenu
     };
   }
-};
+});
 </script>
 
 <style>

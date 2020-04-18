@@ -107,7 +107,7 @@ module.exports = function(mainWindow) {
           label: 'Перейти в полноэкранный режим',
           accelerator: 'Ctrl+Command+F',
           click(item, focusedWindow) {
-            if(focusedWindow) {
+            if (focusedWindow) {
               focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
             }
           }
@@ -116,7 +116,9 @@ module.exports = function(mainWindow) {
           label: 'Toggle Developer Tools',
           accelerator: 'Alt+Command+I',
           click(item, focusedWindow) {
-            if(focusedWindow) focusedWindow.toggleDevTools();
+            if (focusedWindow) {
+              focusedWindow.toggleDevTools();
+            }
           }
         }
       ]
@@ -136,25 +138,32 @@ module.exports = function(mainWindow) {
           click() {
             const focusedWin = BrowserWindow.getFocusedWindow();
 
-            if(!focusedWin) return;
-            if(focusedWin != mainWindow) return focusedWin.close();
+            if (!focusedWin) {
+              return;
+            }
+
+            if (focusedWin !== mainWindow) {
+              return focusedWin.close();
+            }
 
             function closeFunc() {
               mainWindow.close();
               mainWindow.removeListener('leave-full-screen', closeFunc);
             }
 
-            if(mainWindow.isFullScreen()) {
+            if (mainWindow.isFullScreen()) {
               mainWindow.setFullScreen(false);
               mainWindow.on('leave-full-screen', closeFunc);
-            } else closeFunc();
+            } else {
+              closeFunc();
+            }
           }
         },
         { type: 'separator' },
         {
           label: 'Все окна — на передний план',
           click() {
-            if(mainWindow) {
+            if (mainWindow) {
               mainWindow.show();
               mainWindow.focus();
             }

@@ -1,39 +1,41 @@
+import { Conversation, ParsedConversation } from 'types/conversation';
+import { Message, ParsedMessage } from 'types/message';
 import { escape, getPhoto, fields, concatProfiles, capitalize, getAppName } from './utils';
 import { getLastOnlineDate } from './date';
 import getTranslate from './getTranslate';
 import store from './store';
 import vkapi from './vkapi';
 
-export function parseConversation(conversation) {
+export function parseConversation(conversation: Conversation): ParsedConversation {
   const isChat = conversation.peer.id > 2e9;
   const { push_settings, chat_settings } = conversation;
 
   return {
     id: conversation.peer.id,
     channel: isChat && chat_settings.is_group_channel,
-    members: isChat && chat_settings.members_count,
+    members: isChat ? chat_settings.members_count : null,
     left: isChat && ['left', 'kicked'].includes(chat_settings.state),
     muted: push_settings && push_settings.disabled_forever,
     unread: conversation.unread_count || 0,
-    photo: isChat && getPhoto(chat_settings.photo),
-    title: isChat && escape(chat_settings.title).replace(/\n/g, ' '),
+    photo: isChat ? getPhoto(chat_settings.photo) : null,
+    title: isChat ? escape(chat_settings.title).replace(/\n/g, ' ') : null,
     canWrite: conversation.can_write.allowed,
-    keyboard: conversation.current_keyboard,
+    keyboard: conversation.current_keyboard || null,
     last_msg_id: conversation.last_message_id,
     // id последнего прочтенного входящего сообщения
     in_read: conversation.in_read,
     // id последнего прочтенного исходящего сообщения
     out_read: conversation.out_read,
     mentions: conversation.mentions || [],
-    pinnedMsg: isChat && chat_settings.pinned_message && parseMessage(chat_settings.pinned_message),
-    chatSettings: isChat && chat_settings.acl,
-    owner_id: isChat && chat_settings.owner_id,
-    admin_ids: isChat && chat_settings.admin_ids,
+    pinnedMsg: isChat && chat_settings.pinned_message ? parseMessage(chat_settings.pinned_message) : null,
+    chatSettings: isChat ? chat_settings : null,
+    owner_id: isChat ? chat_settings.owner_id : null,
+    admin_ids: isChat ? chat_settings.admin_ids : null,
     loaded: true
   };
 }
 
-export function parseMessage(message) {
+export function parseMessage(message: Message): ParsedMessage {
   if (message.geo) {
     message.attachments.push({
       type: 'geo',
@@ -41,6 +43,7 @@ export function parseMessage(message) {
     });
   }
 
+  // Поле fwd_messages отсутствует в ответе, пересланном сообщении и закрепе
   const fwdCount = message.fwd_messages ? message.fwd_messages.length : 0;
   const isReplyMsg = !!message.reply_message;
   const hasAttachment = fwdCount || isReplyMsg || message.attachments.length;
@@ -96,7 +99,7 @@ export function parseMessage(message) {
   };
 }
 
-export function getMessagePreview(msg) {
+export function getMessagePreview(msg): string | void {
   if (msg.text) {
     return msg.text;
   } else if (msg.hasAttachment) {
@@ -127,7 +130,7 @@ export function getMessagePreview(msg) {
   }
 }
 
-export function getPeerOnline(peer_id, peer, owner) {
+export function getPeerOnline(peer_id: number, peer: ParsedConversation, owner): string {
   if (!peer || !peer.left && peer_id > 2e9 && peer.members == null) {
     return getTranslate('loading');
   }
@@ -137,9 +140,9 @@ export function getPeerOnline(peer_id, peer, owner) {
   }
 
   if (peer_id > 2e9) {
-    const { canWrite, members, channel, left } = peer;
+    const { chatSettings, members, channel, left } = peer;
 
-    if (!canWrite && !channel) {
+    if (chatSettings.state === 'kicked') {
       return getTranslate('im_chat_kicked');
     } else if (left) {
       return getTranslate(channel ? 'im_chat_left_channel' : 'im_chat_left');

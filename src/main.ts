@@ -21,7 +21,7 @@ app.mixin({
 
 app.mount('#app');
 
-const win = electron.remote.getCurrentWindow();
+const win = electron.remote.getCurrentWindow() as any;
 
 shortcut(['Control+Shift+I', 'F12'], () => {
   if (win.isDevToolsOpened()) {

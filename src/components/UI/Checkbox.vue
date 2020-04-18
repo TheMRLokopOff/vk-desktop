@@ -5,15 +5,16 @@
 </template>
 
 <script>
+import { defineComponent } from 'vue';
 import Icon from './Icon.vue';
 
-export default {
+export default defineComponent({
   props: ['active'],
 
   components: {
     Icon
   }
-};
+});
 </script>
 
 <style>

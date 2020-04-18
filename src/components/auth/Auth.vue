@@ -4,12 +4,12 @@
 </template>
 
 <script>
-import { reactive, toRefs } from 'vue';
+import { defineComponent, reactive, toRefs } from 'vue';
 
 import AuthForm from './AuthForm.vue';
 import AuthConfirm from './AuthConfirm.vue';
 
-export default {
+export default defineComponent({
   props: ['isModal'],
 
   components: {
@@ -39,5 +39,5 @@ export default {
       onBack
     };
   }
-};
+});
 </script>

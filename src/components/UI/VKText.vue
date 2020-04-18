@@ -1,11 +1,11 @@
 <script>
 import electron from 'electron';
-import { h, Fragment, computed } from 'vue';
+import { defineComponent, h, Fragment, computed } from 'vue';
 import { emojiRegex, generateEmojiImageVNode } from 'js/emoji';
 import { createParser, unescape } from 'js/utils';
 import domains from 'js/json/domains.json';
 
-export default {
+export default defineComponent({
   props: {
     // Заменять ли <br> на пробел, чтобы получить однострочный текст
     inline: {
@@ -67,7 +67,7 @@ export default {
       }, [])
     );
   }
-};
+});
 
 const mentionRE = /\[(club|id)(\d+)\|(.+?)\]/g;
 const linkRE =

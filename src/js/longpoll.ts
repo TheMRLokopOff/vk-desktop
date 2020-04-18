@@ -6,20 +6,59 @@ import { parseConversation, parseMessage, getLastMsgId } from './messages';
 import store from './store';
 import longpollEvents from './longpollEvents';
 
+interface LongPollServer {
+  server: string
+  key: string
+  ts: number
+  pts: number
+}
+
+interface MessagesList {
+  count: number
+  items: any[]
+}
+
+interface LongPollHistory {
+  history: any[]
+  new_pts: number
+  more?: '1'
+
+  conversations: any[]
+  messages: MessagesList
+
+  profiles?: any[]
+  groups?: any[]
+}
+
+interface LongPollServerResult {
+  ts?: number
+  pts?: number
+  failed?: number
+  updates: any[]
+}
+
 class Longpoll {
+  debug: boolean;
+  version: number;
+  server: string;
+  key: string;
+  ts: number;
+  pts: number;
+
   constructor() {
     this.debug = false;
     this.version = 10;
   }
 
   getServer() {
-    return vkapi('messages.getLongPollServer', {
+    // TODO messages.getLongPollServer typings
+    return vkapi<LongPollServer>('messages.getLongPollServer', {
       lp_version: this.version,
       need_pts: 1
     });
   }
 
-  async start(data) {
+  async start(data?: LongPollServer) {
     if (!data) {
       data = await this.getServer();
     }
@@ -34,7 +73,7 @@ class Longpoll {
 
   async loop() {
     while (true) {
-      const { data } = await request(`https://${this.server}?` + querystring.stringify({
+      const { data } = await request<LongPollServerResult>(`https://${this.server}?` + querystring.stringify({
         act: 'a_check',
         key: this.key,
         ts: this.ts,
@@ -79,7 +118,7 @@ class Longpoll {
   }
 
   async getHistory() {
-    const history = await vkapi('messages.getLongPollHistory', {
+    const history = await vkapi<LongPollHistory>('messages.getLongPollHistory', {
       ts: this.ts,
       pts: this.pts,
       msgs_limit: 500,

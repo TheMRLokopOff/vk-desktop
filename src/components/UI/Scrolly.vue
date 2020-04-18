@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import { reactive, toRefs, onMounted, onBeforeUnmount } from 'vue';
+import { defineComponent, reactive, toRefs, onMounted, onBeforeUnmount } from 'vue';
 import { debounce } from 'js/utils';
 
 const waitAnimationFrame = () => new Promise(requestAnimationFrame);
@@ -47,7 +47,7 @@ function toPercent(n) {
   return `${normalize(n, 1) * 100}%`;
 }
 
-export default {
+export default defineComponent({
   props: ['vclass', 'lock'],
 
   setup(props, { emit }) {
@@ -263,7 +263,7 @@ export default {
       hideScrollBars
     };
   }
-};
+});
 </script>
 
 <style>

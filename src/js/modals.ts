@@ -5,13 +5,13 @@ export const modalsState = reactive({
   hasModals: computed(() => !!Object.keys(modalsState.modals).length)
 });
 
-export function openModal(name, props) {
+export function openModal(name: string, props: { [key: string]: any }) {
   modalsState.modals[name] = {
     name,
     props
   };
 }
 
-export function closeModal(name) {
+export function closeModal(name: string) {
   delete modalsState.modals[name];
 }

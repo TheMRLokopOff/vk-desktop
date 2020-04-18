@@ -5,7 +5,16 @@ import request from 'js/request';
 import store from 'js/store';
 import { openModal, closeModal } from 'js/modals';
 
-export function getAndroidToken(login, password, params = {}) {
+interface GetAndroidTokenParams {
+  code?: string
+  captcha_sid?: string
+  captcha_key?: string
+}
+
+// TODO OAuthResult
+type OAuthResult = { [key: string]: any };
+
+export function getAndroidToken(login: string, password: string, params: GetAndroidTokenParams = {}) {
   return new Promise(async (resolve) => {
     const query = querystring.stringify({
       scope: 'all',
@@ -21,7 +30,7 @@ export function getAndroidToken(login, password, params = {}) {
       ...params
     });
 
-    const { data } = await request({
+    const { data } = await request<OAuthResult>({
       host: 'oauth.vk.com',
       path: `/token?${query}`,
       headers: {
@@ -30,7 +39,7 @@ export function getAndroidToken(login, password, params = {}) {
     });
 
     if (data.trusted_hash) {
-      store.commit('users/setTrusredHash', {
+      store.commit('users/setTrustedHash', {
         login,
         hash: data.trusted_hash
       });
@@ -72,7 +81,7 @@ async function getDesktopToken(androidToken) {
     sdk_fingerprint: '9E76F3AF885CD6A1E2378197D4E7DF1B2C17E46C'
   });
 
-  const { data } = await request({
+  const { data } = await request<string>({
     host: 'oauth.vk.com',
     path: `/authorize?${query}`,
     headers: {

@@ -111,6 +111,8 @@ export default {
         fields
       });
 
+      console.log(conversations.items);
+
       store.commit('addProfiles', [
         ...(
           conversations

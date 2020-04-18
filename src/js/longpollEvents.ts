@@ -13,8 +13,7 @@ import { timer, eventBus, isObject } from './utils';
 import store from './store';
 import vkapi from './vkapi';
 
-function hasFlag(mask, flag) {
-  const checkFlag = (flag) => flags[flag] & mask;
+function hasFlag(mask: number) {
   const flags = {
     unread:         1,       // Непрочитанное сообщение
     outbox:         1 << 1,  // Исходящее сообщение
@@ -29,15 +28,21 @@ function hasFlag(mask, flag) {
     hidden:         1 << 16, // Приветственное сообщение от группы
     deleted_all:    1 << 17, // Удаление сообщения для всех
     chat_in:        1 << 19, // Входящее сообщение в беседе
-    slient:         1 << 20, // messages.send slient: true; выход из беседы
+    silent:         1 << 20, // messages.send silent: true; выход из беседы
     reply_msg:      1 << 21  // Ответ на сообщение
   };
 
-  return flag ? checkFlag(flag) : checkFlag;
+  return function(flag: string) {
+    return !!(flags[flag] & mask);
+  }
 }
 
-function getServiceMessage(data) {
-  const source = {};
+interface LongpollServiceMessage {
+  [key: string]: string | number
+}
+
+function getServiceMessage(data: { [key: string]: string }): LongpollServiceMessage | void {
+  const source: LongpollServiceMessage = {};
 
   for (const item in data) {
     const match = item.match(/source_(.+)/);
@@ -47,19 +52,23 @@ function getServiceMessage(data) {
         ? 'type'
         : match[1];
 
-      const value = isNaN(data[item])
+      source[key] = isNaN(+data[item])
         ? data[item]
         : +data[item];
-
-      source[key] = value;
     }
   }
 
-  return Object.keys(source).length && source;
+  if (Object.keys(source).length) {
+    return source;
+  }
+}
+
+interface LongpollAttachments {
+  [key: string]: null[]
 }
 
 function getAttachments(data) {
-  const attachments = {};
+  const attachments: LongpollAttachments = {};
 
   if (data.geo) {
     attachments.geo = [null];
@@ -167,7 +176,7 @@ async function getLastMessage(peer_id) {
   return { msg, peer };
 }
 
-async function loadMessages(peer_id, msg_ids, onlyReturnMessages) {
+async function loadMessages(peer_id: number, msg_ids: number[], onlyReturnMessages?: boolean) {
   const { items } = await vkapi('messages.getById', {
     message_ids: msg_ids.join(',')
   });
@@ -236,7 +245,7 @@ async function watchTyping(peer_id, user_id) {
   store.commit('messages/removeUserTyping', { peer_id, user_id });
 }
 
-function removeTyping(peer_id, user_id, clearChat) {
+function removeTyping(peer_id: number, user_id: number, clearChat?: boolean) {
   const typing = store.state.messages.typing[peer_id] || {};
 
   if (typing[user_id] || clearChat) {
@@ -368,7 +377,7 @@ export default {
       const lastLocalMsg = localMessages[localMessages.length - 1];
       let lastMsg = items[items.length - 1].msg;
       const messagesWithAttachments = [];
-      const peerData = {
+      const peerData: { [key: string]: any } = {
         id: peer_id,
         last_msg_id: lastMsg.id,
         mentions: conv && conv.peer.mentions || []
@@ -492,7 +501,7 @@ export default {
         }
       }
 
-      const updateConvData = {
+      const updateConvData: { [key: string]: any } = {
         peer: {
           id: peer.id,
           mentions: conv && conv.peer.mentions || []
@@ -649,7 +658,7 @@ export default {
 
         for (const { id } of messages) {
           if (id === msg_id) {
-            return loadMessages(peer_id, [id]);
+            return loadMessages(+peer_id, [id]);
           }
         }
       }
@@ -667,8 +676,8 @@ export default {
     // [type, peer_id, extra]
     handler([type, peer_id, extra]) {
       const isMe = extra === store.state.users.activeUser;
-      const conv = store.state.messages.conversations[peer_id];
-      const peer = conv && conv.peer;
+      const conversation = store.state.messages.conversations[peer_id];
+      const peer = conversation && conversation.peer;
 
       // Изменение названия беседы (1) и выключение/выключение
       // клавиатуры (11) обрабатываются в 4 событии
@@ -810,7 +819,7 @@ export default {
   },
 
   114: {
-    // Изменеие настроек пуш-уведомлений в беседе
+    // Изменение настроек пуш-уведомлений в беседе
     // [{ peer_id, sound, disabled_until }]
     // disabled_until: -1 - выключены; 0 - включены; * - время их включения
     handler([{ peer_id, disabled_until }]) {
