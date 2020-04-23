@@ -30,14 +30,16 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
+
 import CloseModal from './CloseModal.vue';
 import Icon from '../UI/Icon.vue';
 import Ripple from '../UI/Ripple.vue';
 
 import Developers from './settingsSections/Developers.vue';
 
-export default {
+export default defineComponent({
   components: {
     CloseModal,
     Icon,
@@ -54,7 +56,7 @@ export default {
       ]
     };
   }
-};
+});
 </script>
 
 <style>

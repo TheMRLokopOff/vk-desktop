@@ -27,8 +27,8 @@
   </div>
 </template>
 
-<script>
-import { computed } from 'vue';
+<script lang="ts">
+import { defineComponent, computed } from 'vue';
 import store from 'js/store';
 import { usersStorage } from 'js/store/Storage';
 import { openModal, closeModal } from 'js/modals';
@@ -38,7 +38,7 @@ import ModalHeader from './ModalHeader.vue';
 import Button from '../UI/Button.vue';
 import Icon from '../UI/Icon.vue';
 
-export default {
+export default defineComponent({
   components: {
     ModalHeader,
     Button,
@@ -87,7 +87,7 @@ export default {
       openModal
     };
   }
-};
+});
 </script>
 
 <style scoped>

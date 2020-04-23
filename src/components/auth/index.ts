@@ -97,6 +97,7 @@ async function getDesktopToken(androidToken) {
 
 export async function loadUser(android_token, isModal) {
   const access_token = await getDesktopToken(android_token);
+  // TODO users.get
   const [user] = await vkapi('users.get', {
     access_token,
     fields

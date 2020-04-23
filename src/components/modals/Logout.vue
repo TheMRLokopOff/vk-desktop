@@ -9,14 +9,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { logout } from 'js/utils';
 import { closeModal } from 'js/modals';
 
 import ModalHeader from './ModalHeader.vue';
 import Button from '../UI/Button.vue';
 
-export default {
+export default defineComponent({
   components: {
     ModalHeader,
     Button
@@ -29,7 +30,7 @@ export default {
       closeModal('logout');
     }
   }
-};
+});
 </script>
 
 <style>

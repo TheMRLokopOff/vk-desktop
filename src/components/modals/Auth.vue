@@ -7,16 +7,18 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
+
 import ModalHeader from './ModalHeader.vue';
 import Auth from '../auth/Auth.vue';
 
-export default {
+export default defineComponent({
   components: {
     ModalHeader,
     Auth
   }
-};
+});
 </script>
 
 <style>

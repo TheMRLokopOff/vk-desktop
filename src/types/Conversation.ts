@@ -1,24 +1,5 @@
-import { Message } from './message';
-
-interface Keyboard {
-  one_time: boolean
-  author_id: number
-  buttons: KeyboardButton[][]
-}
-
-interface KeyboardButton {
-  color: 'default' | 'primary' | 'positive' | 'negative'
-
-  action: {
-    type: 'text' | 'location' | 'vkpay' | 'open_app' | 'open_link'
-    app_id?: number
-    hash?: string
-    link?: string
-    label?: string
-    owner_id?: number
-    payload: string
-  }
-}
+import { Keyboard } from './shared';
+import { Message, ParsedMessage } from './message';
 
 interface ChatSettingsAcl {
   can_change_info: boolean
@@ -91,20 +72,20 @@ export interface Conversation {
 
 export interface ParsedConversation {
   id: number
-  channel: boolean
+  isChannel: boolean
   members: number | null
   left: boolean
   muted: boolean
   unread: number
   photo: string | null
   title: string | null
-  canWrite: boolean
+  isWriteAllowed: boolean
   keyboard: Keyboard | null
   last_msg_id: number
   in_read: number
   out_read: number
   mentions: number[]
-  pinnedMsg: Message | null
+  pinnedMsg: ParsedMessage | null
   chatSettings: Conversation['chat_settings'] | null
   owner_id: number | null
   admin_ids: number[] | null

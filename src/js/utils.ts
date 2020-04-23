@@ -1,9 +1,8 @@
-// import fs from 'fs';
-// import path from 'path';
 import { EventEmitter } from 'events';
-// import electron from 'electron';
+import * as Api from 'types/api';
+import { BaseUser, BaseGroup, BaseProfile } from 'types/shared';
+import { Conversation } from 'types/conversation';
 import { version } from '../../package.json';
-// import request from './request';
 import vkapi from './vkapi';
 import store from './store';
 import { usersStorage } from './store/Storage';
@@ -15,7 +14,8 @@ const deviceInfo = '(1; 1; 1; 1; 1; 1)';
 export const VKDesktopUserAgent = `VKDesktop/${version} ${deviceInfo}`;
 export const AndroidUserAgent = `VKAndroidApp/5.56.1-4841 ${deviceInfo}`;
 
-export const fields = 'photo_50,photo_100,verified,sex,status,first_name_acc,last_name_acc,online,last_seen,online_info,domain';
+export const fields =
+  'photo_50,photo_100,verified,sex,status,first_name_acc,last_name_acc,online,last_seen,online_info,domain';
 
 export const eventBus = new EventEmitter();
 
@@ -25,41 +25,37 @@ export function timer(time: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, time));
 }
 
-export function escape(text: string | number) {
-  return String(text)
+export function escape(text: string) {
+  return text
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
 
-export function unescape(text: string | number) {
-  return String(text)
+export function unescape(text: string) {
+  return text
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
 }
 
-// export function random(min: number, max: number) {
-//   return Math.floor(Math.random() * (max - min + 1)) + min;
-// }
-
 export function capitalize(str: string) {
   return str[0].toUpperCase() + str.slice(1);
 }
 
-export function isObject(obj) {
+export function isObject(obj: unknown) {
   return obj && !Array.isArray(obj) && typeof obj === 'object';
 }
 
 // --- Функции-обертки
 
 // Вызывает переданную функцию через delay мс после последнего вызова
-export function debounce(fn: () => void, delay: number) {
+export function debounce(fn: Function, delay: number) {
   let timerId: NodeJS.Timeout;
 
-  return function(...args) {
+  return function(...args: any[]) {
     if (timerId) {
       clearTimeout(timerId);
     }
@@ -73,7 +69,7 @@ export function debounce(fn: () => void, delay: number) {
 
 // Вызывает переданную функцию, если после последнего вызова прошло более delay мс
 // А это значит, что функция может вообще не вызваться, что не всегда нужно
-export function throttle(fn: () => void, delay: number) {
+export function throttle(fn: Function, delay: number) {
   let lastCall = 0;
 
   return function(...args: any[]) {
@@ -88,31 +84,14 @@ export function throttle(fn: () => void, delay: number) {
   };
 }
 
-// Вызывает переданную функцию через delay мс после первого вызова
-// export function callWithDelay(fn: () => void, delay: number) {
-//   let timerId: NodeJS.Timeout;
-//   let fnArgs: any[];
-//
-//   return function(...args: any[]) {
-//     fnArgs = args;
-//
-//     if (!timerId) {
-//       timerId = setTimeout(() => {
-//         fn.apply(this, fnArgs);
-//         timerId = null;
-//       }, delay);
-//     }
-//   };
-// }
-
 // Выполняет асинхронную функцию только когда прошлая функция уже была выполнена
-export function createQueueManager(fn: () => Promise<unknown>) {
-  interface QueueItem {
-    args: any[]
-    resolve(value: any): void
-    context: any
-  }
+interface QueueItem {
+  args: any[]
+  context: unknown
+  resolve: Function
+}
 
+export function createQueueManager<ReturnType>(fn: (...args: any[]) => Promise<ReturnType>) {
   const queue: QueueItem[] = [];
   let isExecuting = false;
 
@@ -129,7 +108,7 @@ export function createQueueManager(fn: () => Promise<unknown>) {
   }
 
   return function(...args: any[]) {
-    return new Promise((resolve) => {
+    return new Promise<ReturnType>((resolve) => {
       queue.push({ args, resolve, context: this });
 
       if (queue.length === 1 && !isExecuting) {
@@ -154,16 +133,17 @@ export function createQueueManager(fn: () => Promise<unknown>) {
 // });
 // const result = parser('text element', 'myType');
 // result = [{ type: 'text', value: 'text ' }, { type: 'myType', value: 'element' }];
-
-interface createParserParams {
+interface CreateParserParams {
   regexp: RegExp
   parseText(text: string, ...args: any[]): any[]
   parseElement(element: string, match: RegExpExecArray | null, ...args: any[]): any[]
 }
 
-export function createParser({ regexp, parseText, parseElement }: createParserParams) {
+export function createParser<TextType, ElementType>(
+  { regexp, parseText, parseElement }: CreateParserParams
+) {
   return function(text: string, ...args: any[]) {
-    const blocks = [];
+    const blocks: (TextType | ElementType)[] = [];
     let match: RegExpExecArray | null;
     let offset = 0;
 
@@ -202,51 +182,12 @@ export function convertCount(count: number) {
   return count;
 }
 
-// TODO описание профиля
-export function getPhoto(user) {
+export function getPhoto(user: BaseProfile | Conversation['chat_settings']['photo'] | void): string | void {
   return user && (devicePixelRatio > 1 ? user.photo_100 : user.photo_50);
 }
 
-// Возвращает фотографию нужного размера из объекта фотографий
-
-// TODO описание списка фотографий с размерами
-// type PhotoSizes = ({
-//   type: string
-//   url: string
-// })[];
-
-// export function getPhotoFromSizes(sizes: PhotoSizes, size: string | string[], isDoc?: boolean) {
-//   const find = (type) => sizes.find((photo) => photo.type === type);
-//   const optionalTypes = isDoc ? ['z', 'y', 'x', 'm', 's'] : ['w', 'z', 'y'];
-//   const index = optionalTypes.indexOf(size as string);
-//
-//   if (index !== -1) {
-//     for (let i = index; i < optionalTypes.length; i++) {
-//       const photo = find(optionalTypes[i]);
-//
-//       if (photo) {
-//         return photo;
-//       }
-//     }
-//
-//     return isDoc ? find('o') : find('x');
-//   } else if (Array.isArray(size)) {
-//     for (let i = 0; i < size.length; i++) {
-//       const photo = find(size[i]);
-//
-//       if (photo) {
-//         return photo;
-//       }
-//     }
-//   }
-//
-//   return find(size);
-// }
-
 // Собирает массивы профилей и групп в единый массив, где у групп отрицательный id
-
-// TODO описание профилей и групп
-export function concatProfiles(profiles: any[] | null, groups: any[] | null) {
+export function concatProfiles(profiles: BaseUser[] | void, groups: BaseGroup[] | void): (BaseUser | BaseGroup)[] {
   profiles = profiles || [];
   groups = groups || [];
 
@@ -261,8 +202,7 @@ export function concatProfiles(profiles: any[] | null, groups: any[] | null) {
 
 // Возвращает функцию, которая вызывает колбэк, если юзер долистал
 // список до конца (или в начало), чтобы загрузить новую часть списка
-
-export function endScroll(callback: (result: { isUp: boolean, isDown: boolean }) => void, reverse: boolean | -1) {
+export function endScroll(callback: (result: { isUp: boolean, isDown: boolean }) => void, reverse?: boolean | -1) {
   return function({ scrollTop, scrollHeight, offsetHeight }: HTMLDivElement) {
     // Если блок пустой либо видимая область блока = 0px.
     // Обычно возникает когда у блока стоит display: none или он скрыт другим способом.
@@ -306,7 +246,7 @@ export function onTransitionEnd(el: HTMLElement, anyTarget?: boolean) {
 
 export function logout() {
   const { activeUser } = store.state.users;
-  const usersData = copyObject(usersStorage.data);
+  const usersData = copyObject<typeof usersStorage.data>(usersStorage.data);
 
   usersData.activeUser = null;
   delete usersData.users[activeUser];
@@ -333,8 +273,7 @@ export async function loadProfile(id?: number) {
   isLoadingProfiles = true;
 
   const profiles = loadingProfiles.slice();
-  // TODO execute.getProfiles typing
-  const newProfiles = await vkapi<any[]>('execute.getProfiles', {
+  const newProfiles = await vkapi<Api.execute.getProfiles>('execute.getProfiles', {
     profile_ids: profiles.join(','),
     func_v: 2,
     fields
@@ -384,24 +323,3 @@ export function getAppName(app_id: number) {
       return 'VK mp3 mod';
   }
 }
-
-// TODO rewrite
-// export async function downloadFile(src, withRedirect, progress) {
-//   const files = electron.remote.dialog.showOpenDialogSync({
-//     properties: ['openDirectory']
-//   });
-//
-//   if (files) {
-//     if (withRedirect) {
-//       const { headers: { location } } = await request(src);
-//       src = location;
-//     }
-//
-//     const [name] = (new URL(src)).pathname.split('/').reverse();
-//
-//     await request(src, {
-//       pipe: fs.createWriteStream(path.join(files[0], name)),
-//       progress
-//     });
-//   }
-// }

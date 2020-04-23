@@ -24,9 +24,9 @@
       </div>
     </template>
     <Ripple
-      v-else-if="canWrite.channel"
+      v-else-if="canWrite.isChannel"
       color="var(--messages-peer-ripple)"
-      class="chat_input_error channel"
+      class="chat_input_error isChannel"
       @click="toggleNotifications"
     >
       <template v-if="peer.left">
@@ -45,8 +45,8 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed, toRefs, onMounted } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed, toRefs, onMounted } from 'vue';
 import electron from 'electron';
 import { throttle, escape } from 'js/utils';
 import emoji from 'js/emoji';
@@ -57,7 +57,7 @@ import getTranslate from 'js/getTranslate';
 import Icon from '../../UI/Icon.vue';
 import Ripple from '../../UI/Ripple.vue';
 
-export default {
+export default defineComponent({
   props: ['peer_id', 'peer'],
 
   components: {
@@ -73,14 +73,14 @@ export default {
       showKeyboard: false,
 
       canWrite: computed(() => {
-        if (props.peer && props.peer.canWrite) {
+        if (props.peer && props.peer.isWriteAllowed) {
           return { allowed: true };
         }
 
         return {
           allowed: false,
           text: props.peer ? getTranslate('im_chat_cant_write') : getTranslate('loading'),
-          channel: props.peer && props.peer.channel
+          isChannel: props.peer && props.peer.isChannel
         };
       })
     });
@@ -133,7 +133,7 @@ export default {
       onInput
     };
   }
-};
+});
 </script>
 
 <style>
@@ -252,13 +252,13 @@ export default {
   color: var(--text-gray);
 }
 
-.chat_input_error.channel {
+.chat_input_error.isChannel {
   color: var(--text-blue-light);
   cursor: pointer;
   transition: background-color .2s;
 }
 
-.chat_input_error.channel svg {
+.chat_input_error.isChannel svg {
   margin-right: 8px;
 }
 

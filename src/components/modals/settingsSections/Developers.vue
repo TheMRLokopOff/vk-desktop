@@ -5,13 +5,13 @@
   </div>
 </template>
 
-<script>
-import { computed } from 'vue';
+<script lang="ts">
+import { defineComponent, computed } from 'vue';
 import store from 'js/store';
 
 import Checkbox from '../../UI/Checkbox.vue';
 
-export default {
+export default defineComponent({
   components: {
     Checkbox
   },
@@ -30,5 +30,5 @@ export default {
       toggle
     };
   }
-};
+});
 </script>

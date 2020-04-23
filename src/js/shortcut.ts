@@ -1,9 +1,9 @@
 const pressedKeys = new Set<string>();
 // Предполагается, что одно и тоже сочетание клавиш будет обрабатываться один раз
-const callbacks = new Map<string, () => void>();
+const callbacks = new Map<string, Function>();
 
 function getKeyName({ key, code }: KeyboardEvent) {
-  return /^Key/.test(code) ? code.slice(3) : key;
+  return code.startsWith('Key') ? code.slice(3) : key;
 }
 
 window.addEventListener('keydown', (event) => {
@@ -20,7 +20,7 @@ window.addEventListener('keyup', (event) => {
   pressedKeys.delete(getKeyName(event));
 });
 
-export default function(accelerators: string[], callback: () => void) {
+export default function(accelerators: string[], callback: Function) {
   for (const accelerator of accelerators) {
     callbacks.set(accelerator, callback);
   }

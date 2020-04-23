@@ -1,9 +1,9 @@
-<script>
-import { h, ref, onMounted } from 'vue';
+<script lang="ts">
+import { defineComponent, h, ref, onMounted } from 'vue';
 
-export default {
+export default defineComponent({
   props: ['event'],
-  
+
   setup(props, { slots }) {
     const style = ref(null);
     const menu = ref(null);
@@ -44,7 +44,7 @@ export default {
       ref: menu
     }, slots);
   }
-};
+});
 </script>
 
 <style>

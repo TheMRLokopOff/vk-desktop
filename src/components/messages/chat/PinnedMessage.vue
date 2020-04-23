@@ -27,8 +27,8 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed, toRefs } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed, toRefs } from 'vue';
 import { getMessagePreview, getPeerTitle } from 'js/messages';
 import { getFullDate } from 'js/date';
 import store from 'js/store';
@@ -37,7 +37,7 @@ import Icon from '../../UI/Icon.vue';
 import VKText from '../../UI/VKText.vue';
 import ServiceMessage from '../ServiceMessage.vue';
 
-export default {
+export default defineComponent({
   props: ['msg', 'peer_id'],
 
   components: {
@@ -51,7 +51,7 @@ export default {
       settings: computed(() => store.getters['settings/settings']),
       isHidden: computed(() => state.settings.hiddenPinnedMessages[props.peer_id]),
       author: computed(() => store.state.profiles[props.msg.from]),
-      name: computed(() => getPeerTitle(0, 0, state.author)),
+      name: computed(() => getPeerTitle(0, null, state.author)),
       time: computed(() => getFullDate(new Date(props.msg.date * 1000))),
       text: computed(() => getMessagePreview(props.msg)),
       isAttachment: computed(() => props.msg.hasAttachment && !props.msg.text && !props.msg.action)
@@ -76,7 +76,7 @@ export default {
       hideMessage
     };
   }
-};
+});
 </script>
 
 <style>

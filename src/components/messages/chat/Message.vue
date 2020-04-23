@@ -33,13 +33,13 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed } from 'vue';
 import { getTime } from 'js/date';
 
 import VKText from '../../UI/VKText.vue';
 
-export default {
+export default defineComponent({
   props: ['peer_id', 'peer', 'msg'],
 
   components: {
@@ -60,7 +60,7 @@ export default {
 
     return state;
   }
-};
+});
 </script>
 
 <style>

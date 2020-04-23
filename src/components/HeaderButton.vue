@@ -2,7 +2,7 @@
   <img src="assets/menu.webp" class="open_menu_btn" @click="openMenu">
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent } from 'vue';
 import store from 'js/store';
 

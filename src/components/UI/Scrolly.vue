@@ -33,7 +33,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent, reactive, toRefs, onMounted, onBeforeUnmount } from 'vue';
 import { debounce } from 'js/utils';
 

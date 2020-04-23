@@ -9,17 +9,15 @@ interface RequestParams {
   raw?: boolean
   timeout?: number
   postData?: string
-  multipart?: {
-    [key: string]: {
-      filename: string
-      contentType: string
-      value: NodeJS.ReadableStream
-    }
-  }
+  multipart?: Record<string, {
+    filename: string
+    contentType: string
+    value: NodeJS.ReadableStream
+  }>
   pipe?: NodeJS.WritableStream
-  progress?(ProgressOptions: {
-    size: number,
-    downloaded: number,
+  progress?(options: {
+    size: number
+    downloaded: number
     progress: number
   }): void
 }
@@ -42,12 +40,12 @@ function request<ResponseType>(requestParams: RequestOptions, params: RequestPar
         res.pipe(params.pipe);
       }
 
-      res.on('data', (chunk) => {
+      res.on('data', (chunk: Uint8Array) => {
         if (!params.pipe) {
           chunks.push(chunk);
         }
 
-        if (typeof params.progress === 'function') {
+        if (params.progress) {
           loadedLength += chunk.length;
 
           params.progress({
@@ -106,10 +104,10 @@ async function sendMultipart(req: http.ClientRequest, files: RequestParams['mult
       file.value
         .pipe(req, { end: false })
         .on('end', () => {
-          if (i !== names.length - 1) {
-            req.write(`\r\n--${boundary}`);
-          } else {
+          if (i === names.length - 1) {
             req.end(`\r\n--${boundary}--`);
+          } else {
+            req.write(`\r\n--${boundary}`);
           }
 
           resolve();
@@ -129,12 +127,12 @@ async function waitConnection() {
       waitConnectionPromise = null;
       break;
     } catch (err) {
-      if (!navigator.onLine) {
+      if (navigator.onLine) {
+        await timer(5000);
+      } else {
         await new Promise((resolve) => {
           window.addEventListener('online', resolve, { once: true });
         });
-      } else {
-        await timer(5000);
       }
     }
   }

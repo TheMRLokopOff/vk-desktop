@@ -8,7 +8,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent, toRefs } from 'vue';
 import { modalsState, closeModal } from 'js/modals';
 

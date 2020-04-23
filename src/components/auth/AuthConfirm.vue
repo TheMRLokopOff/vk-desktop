@@ -17,8 +17,8 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed, toRefs, onMounted } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed, toRefs, onMounted } from 'vue';
 import { onTransitionEnd, timer } from 'js/utils';
 import { format } from 'js/date/utils';
 import vkapi from 'js/vkapi';
@@ -26,7 +26,7 @@ import { getAndroidToken, loadUser } from '.';
 
 import Button from '../UI/Button.vue';
 
-export default {
+export default defineComponent({
   props: ['isModal', 'params'],
 
   components: {
@@ -118,7 +118,7 @@ export default {
       format
     };
   }
-};
+});
 </script>
 
 <style>

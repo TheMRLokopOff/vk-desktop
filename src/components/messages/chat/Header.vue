@@ -27,8 +27,8 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed } from 'vue';
 import { getPeerAvatar, getPeerTitle, getPeerOnline } from 'js/messages';
 import store from 'js/store';
 
@@ -37,7 +37,7 @@ import VKText from '../../UI/VKText.vue';
 import PinnedMessage from './PinnedMessage.vue';
 import Typing from '../Typing.vue';
 
-export default {
+export default defineComponent({
   props: ['peer_id', 'peer'],
 
   components: {
@@ -61,7 +61,7 @@ export default {
 
     return state;
   }
-};
+});
 </script>
 
 <style>

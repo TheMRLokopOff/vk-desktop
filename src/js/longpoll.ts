@@ -1,4 +1,7 @@
 import querystring from 'querystring';
+import * as Api from 'types/api';
+import { ParsedConversation } from 'types/conversation';
+import { ParsedMessage } from 'types/message';
 import request from './request';
 import vkapi from './vkapi';
 import { concatProfiles, fields } from './utils';
@@ -6,35 +9,11 @@ import { parseConversation, parseMessage, getLastMsgId } from './messages';
 import store from './store';
 import longpollEvents from './longpollEvents';
 
-interface LongPollServer {
-  server: string
-  key: string
-  ts: number
-  pts: number
-}
-
-interface MessagesList {
-  count: number
-  items: any[]
-}
-
-interface LongPollHistory {
-  history: any[]
-  new_pts: number
-  more?: '1'
-
-  conversations: any[]
-  messages: MessagesList
-
-  profiles?: any[]
-  groups?: any[]
-}
-
 interface LongPollServerResult {
   ts?: number
   pts?: number
-  failed?: number
   updates: any[]
+  failed?: 1 | 2 | 3 | 4
 }
 
 class Longpoll {
@@ -51,18 +30,13 @@ class Longpoll {
   }
 
   getServer() {
-    // TODO messages.getLongPollServer typings
-    return vkapi<LongPollServer>('messages.getLongPollServer', {
+    return vkapi<Api.messages.getLongPollServer>('messages.getLongPollServer', {
       lp_version: this.version,
       need_pts: 1
     });
   }
 
-  async start(data?: LongPollServer) {
-    if (!data) {
-      data = await this.getServer();
-    }
-
+  start(data: Api.messages.getLongPollServer) {
     this.server = data.server;
     this.key = data.key;
     this.pts = data.pts;
@@ -90,7 +64,7 @@ class Longpoll {
     }
   }
 
-  async catchErrors(data) {
+  async catchErrors(data: LongPollServerResult) {
     console.warn('[lp] Error:', data);
 
     switch (data.failed) {
@@ -118,7 +92,7 @@ class Longpoll {
   }
 
   async getHistory() {
-    const history = await vkapi<LongPollHistory>('messages.getLongPollHistory', {
+    const history = await vkapi<Api.messages.getLongPollHistory>('messages.getLongPollHistory', {
       ts: this.ts,
       pts: this.pts,
       msgs_limit: 500,
@@ -130,17 +104,21 @@ class Longpoll {
     store.commit('addProfiles', concatProfiles(history.profiles, history.groups));
     this.pts = history.new_pts;
 
-    const peers = history.conversations.reduce((conversations, conversation) => {
-      conversations[conversation.peer.id] = parseConversation(conversation);
-      return conversations;
-    }, {});
+    const peers = history.conversations.reduce<Record<number, ParsedConversation>>(
+      (conversations, conversation) => {
+        conversations[conversation.peer.id] = parseConversation(conversation);
+        return conversations;
+      }, {}
+    );
 
-    const messages = history.messages.items.reduce((msgs, msg) => {
-      msgs[msg.id] = parseMessage(msg);
-      return msgs;
-    }, {});
+    const messages = history.messages.items.reduce<Record<number, ParsedMessage>>(
+      (msgs, msg) => {
+        msgs[msg.id] = parseMessage(msg);
+        return msgs;
+      }, {}
+    );
 
-    const events = [];
+    const events: any[][] = [];
 
     for (const item of history.history) {
       if ([3, 4, 5, 18].includes(item[0])) {
@@ -162,7 +140,7 @@ class Longpoll {
     }
   }
 
-  async emitHistory(history = []) {
+  async emitHistory(history: any[][] = []) {
     if (!history.length) {
       return;
     }
@@ -188,7 +166,7 @@ class Longpoll {
 
       const fromHistory = rawEvent[1] === 'fromHistory';
       const rawData = fromHistory ? rawEvent[0] : rawEvent;
-      const data = event.parser ? event.parser(rawData) : rawData;
+      const data = event.parser ? (event.parser as Function)(rawData, fromHistory) : rawData;
 
       if (!data) {
         continue;
@@ -198,7 +176,8 @@ class Longpoll {
         const prevEvent = events[events.length - 1];
 
         if (
-          prevEvent && prevEvent[0] === id && // совпадают id событий
+          prevEvent &&
+          prevEvent[0] === id && // совпадают id событий
           prevEvent[2] === rawEvent[2] // и peer_id
         ) {
           prevEvent[1].push(data);
@@ -212,9 +191,9 @@ class Longpoll {
 
     for (const [id, data, peer_id, fromHistory] of events) {
       const { handler, preload } = longpollEvents[id];
-      const isPreload = !fromHistory && preload && preload(data);
+      const isPreload = !!(!fromHistory && preload && preload(data));
       const promise = peer_id
-        ? handler({ key: +peer_id, items: data }, isPreload)
+        ? handler({ peer_id: +peer_id, items: data }, isPreload)
         : handler(data, isPreload);
 
       if (isPreload) {

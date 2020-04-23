@@ -1,12 +1,12 @@
-<script>
-import { h, Fragment } from 'vue';
+<script lang="ts">
+import { defineComponent, h, Fragment } from 'vue';
 import { getDay } from 'js/date';
 import { isSameDay } from 'js/date/utils';
 import { capitalize } from 'js/utils';
 
 import MessagesGroup from './MessagesGroup.vue';
 
-export default {
+export default defineComponent({
   props: ['peer_id', 'peer', 'list'],
 
   render(props) {
@@ -72,7 +72,7 @@ export default {
 
     return h(Fragment, children);
   }
-};
+});
 </script>
 
 <style>

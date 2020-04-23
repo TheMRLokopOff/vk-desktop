@@ -1,21 +1,20 @@
 import electron from 'electron';
+import { Account } from 'types/shared';
 
 const win = electron.remote.getCurrentWindow();
 
-type obj = { [key: string]: any };
-
-interface StorageOptions {
+interface StorageOptions<DataType> {
   name: string
-  defaults: object
-  beforeSave?(data: obj): void
+  defaults: DataType
+  beforeSave?(data: DataType): void
 }
 
-class Storage {
+class Storage<DataType> {
   name: string;
-  data: obj;
+  data: DataType;
 
-  constructor({ name, defaults, beforeSave }: StorageOptions) {
-    const storageData = JSON.parse(localStorage.getItem(name) || '{}');
+  constructor({ name, defaults, beforeSave }: StorageOptions<DataType>) {
+    const storageData: Partial<DataType> = JSON.parse(localStorage.getItem(name) || '{}');
 
     this.name = name;
     this.data = {
@@ -30,7 +29,7 @@ class Storage {
     this.save();
   }
 
-  update(data) {
+  update(data: DataType) {
     this.data = data;
     this.save();
   }
@@ -48,7 +47,13 @@ export const defaultUserSettings = {
   devShowPeerId: false
 };
 
-export const usersStorage = new Storage({
+interface UsersStorage {
+  activeUser: number | null
+  trustedHashes: Record<string, string>
+  users: Record<number, Account>
+}
+
+export const usersStorage = new Storage<UsersStorage>({
   name: 'users',
 
   defaults: {
@@ -58,13 +63,25 @@ export const usersStorage = new Storage({
   }
 });
 
-export const settingsStorage = new Storage({
+interface SettingsStorage {
+  window: Electron.Rectangle
+  langName: 'ru'
+  userSettings: {
+    hiddenPinnedMessages: {}
+    pinnedPeers: number[]
+    typing: boolean
+    notRead: boolean
+    devShowPeerId: boolean
+  }
+}
+
+export const settingsStorage = new Storage<SettingsStorage>({
   name: 'settings',
 
   defaults: {
     window: win.getBounds(),
     langName: 'ru',
-    userSettings: {}
+    userSettings: defaultUserSettings
   },
 
   beforeSave({ userSettings }) {

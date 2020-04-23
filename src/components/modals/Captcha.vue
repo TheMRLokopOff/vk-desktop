@@ -21,15 +21,15 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed, toRefs, onMounted } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed, toRefs, onMounted } from 'vue';
 import { closeModal } from 'js/modals';
 import { timer } from 'js/utils';
 
 import ModalHeader from './ModalHeader.vue';
 import Button from '../UI/Button.vue';
 
-export default {
+export default defineComponent({
   props: ['src', 'send'],
 
   components: {
@@ -71,7 +71,7 @@ export default {
       sendCode
     };
   }
-};
+});
 </script>
 
 <style>

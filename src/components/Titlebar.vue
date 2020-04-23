@@ -14,7 +14,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
 import electron from 'electron';
 

@@ -1,3 +1,4 @@
+import { VNode, h } from 'vue';
 import localEmojiString from './json/localEmoji.json';
 
 const localEmoji = new Map<string, string>(
@@ -17,25 +18,10 @@ function generateValidEmoji(emoji: string) {
     .join('');
 }
 
-// Преобразует символ эмодзи в hex-код
-// export function getEmojiCode(emoji: string) {
-//   return encodeURIComponent(generateValidEmoji(emoji)).replace(/%/g, '').toLowerCase();
-// }
-//
-// export function getEmojiFromCode(rawCode: string) {
-//   // isKeyCap = true только в случаях с эмодзи "1⃣".
-//   // Его код - (0-9#*)e283a3
-//   const isKeyCap = (rawCode.length % 2) === 1;
-//   const start = isKeyCap ? rawCode.slice(0, 1) : '';
-//   const code = isKeyCap ? rawCode.slice(1) : rawCode;
-//
-//   return start + decodeURIComponent('%' + code.match(/(..?)/g).join('%'));
-// }
-
 // Извлекает из запакованной локальной записи позицию
 // эмодзи в виде [id, x, y, posX, posY]
-function parseLocalEmoji(data) {
-  return data.split('|').map((n) => {
+function parseLocalEmoji(data: string) {
+  return data.split('|').map<number>((n) => {
     const nums = [
       288, 0, 5, 128, 7, 6, 160, 64, 96, 208, 112, 80, 16,
       192, 48, 4, 176, 32, 224, 144, 256, 240, 2, 1, 3, 8
@@ -46,7 +32,7 @@ function parseLocalEmoji(data) {
 }
 
 // Генерирует из эмодзи VNode img элемент
-export function generateEmojiImageVNode(createElement, emoji) {
+export function generateEmojiImageVNode(createElement: typeof h, emoji: string): VNode | string {
   const validEmoji = generateValidEmoji(emoji);
   const local = localEmoji.get(validEmoji);
 
@@ -70,7 +56,7 @@ export function generateEmojiImageVNode(createElement, emoji) {
 }
 
 // Генерирует из эмодзи картинку
-function generateEmojiImageText(emoji) {
+function generateEmojiImageText(emoji: string) {
   const validEmoji = generateValidEmoji(emoji);
   const local = localEmoji.get(validEmoji);
 

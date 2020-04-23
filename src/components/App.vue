@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent, reactive, computed, onMounted, watch } from 'vue';
 import router from 'js/router';
 import store from 'js/store';

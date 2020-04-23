@@ -8,12 +8,13 @@
   />
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { closeModal } from 'js/modals';
 
 import Icon from '../UI/Icon.vue';
 
-export default {
+export default defineComponent({
   props: ['closable', 'isSettings'],
 
   components: {
@@ -27,7 +28,7 @@ export default {
       closeModal(parent.$attrs['data-name']);
     }
   }
-};
+});
 </script>
 
 <style>

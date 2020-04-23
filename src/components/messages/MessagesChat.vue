@@ -8,8 +8,8 @@
   </div>
 </template>
 
-<script>
-import { reactive, computed, toRefs, onMounted } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed, toRefs, onMounted } from 'vue';
 import { loadConversation, loadConversationMembers } from 'js/messages';
 import { eventBus } from 'js/utils';
 import store from 'js/store';
@@ -19,7 +19,7 @@ import Header from './chat/Header.vue';
 import List from './chat/List.vue';
 import Input from './chat/Input.vue';
 
-export default {
+export default defineComponent({
   components: {
     Header,
     List,
@@ -30,8 +30,8 @@ export default {
     const state = reactive({
       peer_id: +router.currentRoute.value.params.id,
       peer: computed(() => {
-        const conv = store.state.messages.conversations[state.peer_id];
-        return conv && conv.peer;
+        const conversation = store.state.messages.conversations[state.peer_id];
+        return conversation && conversation.peer;
       }),
 
       pinnedMsg: computed(() => {
@@ -70,7 +70,7 @@ export default {
       closeChat
     };
   }
-};
+});
 </script>
 
 <style>

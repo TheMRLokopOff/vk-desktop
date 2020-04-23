@@ -10,7 +10,7 @@ import {
   differenceInYears
 } from './utils';
 
-export function getTime(date) {
+export function getTime(date: Date) {
   return format(date, 'hh:mm');
 }
 
@@ -18,7 +18,7 @@ export function getTime(date) {
 // 2) вчера
 // 3) 1 мар
 // 4) 1 мар 2019
-export function getShortDate(date) {
+export function getShortDate(date: Date) {
   const now = new Date();
 
   if (isSameDay(date, now)) {
@@ -37,7 +37,7 @@ export function getShortDate(date) {
 // 2) вчера в 12:30
 // 3) 1 мар в 12:30
 // 4) 1 мар 2019 в 12:30
-export function getFullDate(date, fullMonth) {
+export function getFullDate(date: Date, fullMonth?: boolean) {
   const time = `${getTranslate('date_at')} ${getTime(date)}`;
   const monthToken = fullMonth ? 'MMMM' : 'MMM';
   const now = new Date();
@@ -61,9 +61,9 @@ export function getFullDate(date, fullMonth) {
 // 5) Был в сети вчера в 12:30
 // 6) Был в сети 1 марта в 12:30
 // 7) Был в сети 1 марта 2019 в 12:30
-export function getLastOnlineDate(date, isGirl) {
+export function getLastOnlineDate(date: Date, isGirl: boolean) {
   const now = new Date();
-  let formatted;
+  let formatted: string;
 
   if (differenceInSeconds(now, date) < 60) {
     formatted = getTranslate('date_now');
@@ -80,7 +80,7 @@ export function getLastOnlineDate(date, isGirl) {
 // 2) вчера, 1 марта
 // 3) 1 марта
 // 4) 1 марта 2019
-export function getDay(date) {
+export function getDay(date: Date) {
   const day = format(date, 'd MMMM');
   const now = new Date();
 

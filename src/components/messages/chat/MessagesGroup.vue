@@ -25,15 +25,15 @@
   </div>
 </template>
 
-<script>
-import { computed, reactive } from 'vue';
+<script lang="ts">
+import { defineComponent, computed, reactive } from 'vue';
 import { getPeerTitle } from 'js/messages';
 import { getPhoto } from 'js/utils';
 import store from 'js/store';
 
 import Message from './Message.vue';
 
-export default {
+export default defineComponent({
   props: ['peer_id', 'peer', 'messages'],
 
   components: {
@@ -44,16 +44,16 @@ export default {
     const state = reactive({
       msg: computed(() => props.messages[0]),
       user: computed(() => store.state.profiles[state.msg.from]),
-      name: computed(() => getPeerTitle(0, 0, state.user)),
+      name: computed(() => getPeerTitle(0, null, state.user)),
       photo: computed(() => getPhoto(state.user) || 'assets/blank.gif'),
       isChat: computed(() => props.peer_id > 2e9),
-      isChannel: computed(() => props.peer && props.peer.channel),
+      isChannel: computed(() => props.peer && props.peer.isChannel),
       showUserData: computed(() => !state.msg.out && state.isChat && !state.isChannel)
     });
 
     return state;
   }
-};
+});
 </script>
 
 <style>

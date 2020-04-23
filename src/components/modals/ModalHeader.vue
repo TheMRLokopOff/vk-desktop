@@ -8,10 +8,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
+
 import CloseModal from './CloseModal.vue';
 
-export default {
+export default defineComponent({
   props: ['closable'],
 
   components: {
@@ -23,7 +25,7 @@ export default {
       closable: ('closable' in props) ? props.closable : true
     };
   }
-};
+});
 </script>
 
 <style>

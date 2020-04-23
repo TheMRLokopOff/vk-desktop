@@ -59,8 +59,8 @@
   </Ripple>
 </template>
 
-<script>
-import { reactive, computed, toRefs } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed, toRefs } from 'vue';
 import { getMessagePreview, loadConversationMembers, getPeerAvatar, getPeerTitle } from 'js/messages';
 import { convertCount } from 'js/utils';
 import { getShortDate } from 'js/date';
@@ -74,7 +74,7 @@ import VKText from '../UI/VKText.vue';
 import Typing from './Typing.vue';
 import ServiceMessage from './ServiceMessage.vue';
 
-export default {
+export default defineComponent({
   props: ['peer', 'msg', 'activeChat', 'fromSearch'],
 
   components: {
@@ -117,7 +117,7 @@ export default {
       }),
 
       authorName: computed(() => {
-        if (props.msg.action || props.peer.channel) {
+        if (props.msg.action || props.peer.isChannel) {
           return '';
         } else if (props.msg.out) {
           return `${getTranslate('you')}:`;
@@ -159,7 +159,7 @@ export default {
       openChat
     };
   }
-};
+});
 </script>
 
 <style>

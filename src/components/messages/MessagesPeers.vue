@@ -41,8 +41,8 @@
   </Transition>
 </template>
 
-<script>
-import { reactive, toRefs, computed, onMounted, nextTick } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, toRefs, computed, onMounted, nextTick } from 'vue';
 import { fields, concatProfiles, timer, endScroll } from 'js/utils';
 import { parseConversation, parseMessage } from 'js/messages';
 import vkapi from 'js/vkapi';
@@ -54,7 +54,7 @@ import MessagesPeer from './MessagesPeer.vue';
 import MessagesPeersSearch from './MessagesPeersSearch.vue';
 import Icon from '../UI/Icon.vue';
 
-export default {
+export default defineComponent({
   props: ['activeChat'],
 
   components: {
@@ -136,7 +136,7 @@ export default {
       onScroll
     };
   }
-};
+});
 </script>
 
 <style>

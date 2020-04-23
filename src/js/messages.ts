@@ -1,5 +1,8 @@
+import * as Api from 'types/api';
 import { Conversation, ParsedConversation } from 'types/conversation';
 import { Message, ParsedMessage } from 'types/message';
+import { MessageAttachments } from 'types/attachments';
+import { BaseUser, BaseProfile, UserSex } from 'types/shared';
 import { escape, getPhoto, fields, concatProfiles, capitalize, getAppName } from './utils';
 import { getLastOnlineDate } from './date';
 import getTranslate from './getTranslate';
@@ -12,14 +15,14 @@ export function parseConversation(conversation: Conversation): ParsedConversatio
 
   return {
     id: conversation.peer.id,
-    channel: isChat && chat_settings.is_group_channel,
+    isChannel: isChat && chat_settings.is_group_channel,
     members: isChat ? chat_settings.members_count : null,
     left: isChat && ['left', 'kicked'].includes(chat_settings.state),
-    muted: push_settings && push_settings.disabled_forever,
+    muted: !!push_settings && push_settings.disabled_forever,
     unread: conversation.unread_count || 0,
-    photo: isChat ? getPhoto(chat_settings.photo) : null,
+    photo: isChat ? getPhoto(chat_settings.photo) as string : null,
     title: isChat ? escape(chat_settings.title).replace(/\n/g, ' ') : null,
-    canWrite: conversation.can_write.allowed,
+    isWriteAllowed: conversation.can_write.allowed,
     keyboard: conversation.current_keyboard || null,
     last_msg_id: conversation.last_message_id,
     // id последнего прочтенного входящего сообщения
@@ -45,24 +48,24 @@ export function parseMessage(message: Message): ParsedMessage {
 
   // Поле fwd_messages отсутствует в ответе, пересланном сообщении и закрепе
   const fwdCount = message.fwd_messages ? message.fwd_messages.length : 0;
-  const isReplyMsg = !!message.reply_message;
-  const hasAttachment = fwdCount || isReplyMsg || message.attachments.length;
-  const attachments = {};
+  const hasReplyMsg = !!message.reply_message;
+  const hasAttachment = !!(fwdCount || hasReplyMsg || message.attachments.length);
+  const attachments: MessageAttachments = {};
 
   for (const attachDescription of message.attachments) {
     let { type } = attachDescription;
     const attach = attachDescription[type];
 
     if (type === 'link') {
-      const playlistRE = /https:\/\/m\.vk\.com\/audio\?act=audio_playlist(\d+)_(\d+)/;
-      const artistRE = /https:\/\/m\.vk\.com\/artist\/(.+?)\?/;
-      const articleRE = /https:\/\/m\.vk\.com\/@/;
+      const playlistLink = 'https://m.vk.com/audio?act=audio_playlist';
+      const artistLink = 'https://m.vk.com/artist/';
+      const articleLink = 'https://m.vk.com/@';
 
-      if (playlistRE.test(attach.url)) {
+      if (attach.url.includes(playlistLink)) {
         type = 'audio_playlist';
-      } else if (artistRE.test(attach.url)) {
+      } else if (attach.url.includes(artistLink)) {
         type = 'artist';
-      } else if (articleRE.test(attach.url)) {
+      } else if (attach.url.includes(articleLink)) {
         // articles.getByLink с ссылкой в поле links
         type = 'article';
       }
@@ -76,38 +79,40 @@ export function parseMessage(message: Message): ParsedMessage {
   }
 
   return {
-    id: message.id,
-    text: escape(message.text).replace(/\n/g, '<br>'),
+    id: 'id' in message ? message.id : null,
     from: message.from_id,
-    date: message.date,
     out: message.from_id === store.state.users.activeUser,
-    editTime: message.update_time || 0,
-    hidden: message.is_hidden,
-    action: message.action,
-    fwdCount,
-    fwdMessages: (message.fwd_messages || []).map(parseMessage),
-    isReplyMsg,
-    replyMsg: isReplyMsg && parseMessage(message.reply_message),
-    attachments,
+    text: escape(message.text).replace(/\n/g, '<br>'),
+    date: message.date,
     conversation_msg_id: message.conversation_message_id,
     random_id: message.random_id,
-    was_listened: !!message.was_listened,
+    action: message.action || null,
     hasAttachment,
+    fwdCount,
+    fwdMessages: (message.fwd_messages || []).map(parseMessage),
+    attachments,
+    hasReplyMsg,
+    replyMsg: hasReplyMsg ? parseMessage(message.reply_message) : null,
+    keyboard: message.keyboard || null,
+    hasTemplate: !!message.template,
+    template: message.template || null,
+    hidden: !!message.is_hidden,
+    editTime: message.update_time || 0,
+    was_listened: !!message.was_listened,
     isContentDeleted: !message.text && !message.action && !hasAttachment,
-    keyboard: message.keyboard,
-    template: message.template
+    fromLongPoll: false
   };
 }
 
-export function getMessagePreview(msg): string | void {
+export function getMessagePreview(msg: ParsedMessage): string | void {
   if (msg.text) {
     return msg.text;
   } else if (msg.hasAttachment) {
-    const { isReplyMsg, fwdCount, attachments } = msg;
+    const { hasReplyMsg, fwdCount, attachments } = msg;
     const [attachName] = Object.keys(attachments);
 
     if (attachName) {
-      const count = attachments[attachName].length;
+      const count: number = attachments[attachName].length;
       const translate = getTranslate('im_attachments', attachName, [count], count);
 
       if (!translate) {
@@ -118,7 +123,7 @@ export function getMessagePreview(msg): string | void {
       return translate;
     }
 
-    if (isReplyMsg) {
+    if (hasReplyMsg) {
       return getTranslate('im_replied');
     }
 
@@ -130,8 +135,8 @@ export function getMessagePreview(msg): string | void {
   }
 }
 
-export function getPeerOnline(peer_id: number, peer: ParsedConversation, owner): string {
-  if (!peer || !peer.left && peer_id > 2e9 && peer.members == null) {
+export function getPeerOnline(peer_id: number, peer: ParsedConversation | void, owner: BaseProfile | void) {
+  if (!peer || !peer.left && peer_id > 2e9 && peer.members === null) {
     return getTranslate('loading');
   }
 
@@ -140,12 +145,12 @@ export function getPeerOnline(peer_id: number, peer: ParsedConversation, owner):
   }
 
   if (peer_id > 2e9) {
-    const { chatSettings, members, channel, left } = peer;
+    const { chatSettings, members, isChannel, left } = peer;
 
     if (chatSettings.state === 'kicked') {
       return getTranslate('im_chat_kicked');
     } else if (left) {
-      return getTranslate(channel ? 'im_chat_left_channel' : 'im_chat_left');
+      return getTranslate(isChannel ? 'im_chat_left_channel' : 'im_chat_left');
     } else {
       return getTranslate('im_chat_members', [members], members);
     }
@@ -159,7 +164,7 @@ export function getPeerOnline(peer_id: number, peer: ParsedConversation, owner):
     return getTranslate('im_user_deleted');
   }
 
-  const { online, online_mobile, online_app, online_info: info, last_seen } = owner;
+  const { online, online_mobile, online_app, online_info, last_seen, sex } = owner as BaseUser;
 
   if (online) {
     const appName = online_app > 0 && getAppName(online_app);
@@ -171,10 +176,10 @@ export function getPeerOnline(peer_id: number, peer: ParsedConversation, owner):
     }
   }
 
-  const isGirl = owner.sex === 1;
+  const isGirl = sex === UserSex.female;
 
-  if (!info.visible) {
-    return getTranslate(`im_chat_online_${info.status}`, isGirl);
+  if (!online_info.visible) {
+    return getTranslate(`im_chat_online_${online_info.status}`, isGirl);
   }
 
   if (last_seen) {
@@ -185,7 +190,7 @@ export function getPeerOnline(peer_id: number, peer: ParsedConversation, owner):
   return '';
 }
 
-export function getPeerAvatar(peer_id, peer, owner) {
+export function getPeerAvatar(peer_id: number, peer: ParsedConversation | void, owner: BaseProfile | void) {
   if (peer_id > 2e9) {
     return peer && !peer.left && peer.photo || 'assets/im_chat_photo.png';
   } else {
@@ -193,23 +198,29 @@ export function getPeerAvatar(peer_id, peer, owner) {
   }
 }
 
-export function getPeerTitle(peer_id, peer, owner) {
+export function getPeerTitle(peer_id: number, peer: ParsedConversation | void, owner: BaseProfile | void) {
   if (peer_id > 2e9) {
     return peer && peer.title || '...';
   } else if (owner) {
-    return owner.name || `${owner.first_name} ${owner.last_name}`;
+    return 'name' in owner
+      ? owner.name
+      : `${owner.first_name} ${owner.last_name}`;
   }
 
   return '...';
 }
 
-export function getLastMsgId() {
+export function getLastMsgId(): number | null {
   const [peer] = store.getters['messages/peersList'];
-  return peer && peer.msg.id;
+  return peer ? peer.msg.id : null;
 }
 
-export async function loadConversation(id) {
-  const { items: [conv], profiles, groups } = await vkapi('messages.getConversationsById', {
+export async function loadConversation(id: number) {
+  const {
+    items,
+    profiles,
+    groups
+  } = await vkapi<Api.messages.getConversationsById>('messages.getConversationsById', {
     peer_ids: id,
     extended: 1,
     fields
@@ -217,21 +228,24 @@ export async function loadConversation(id) {
 
   store.commit('addProfiles', concatProfiles(profiles, groups));
   store.commit('messages/updateConversation', {
-    peer: parseConversation(conv)
+    peer: parseConversation(items[0])
   });
 }
 
-export const loadedConvMembers = new Set();
+export const loadedConversationMembers = new Set<number>();
 
-export async function loadConversationMembers(id, force) {
-  if (loadedConvMembers.has(id) && !force) {
+export async function loadConversationMembers(id: number, force?: boolean) {
+  if (loadedConversationMembers.has(id) && !force) {
     return;
   }
 
-  loadedConvMembers.add(id);
+  loadedConversationMembers.add(id);
 
   try {
-    const { profiles, groups } = await vkapi('messages.getConversationMembers', {
+    const {
+      profiles,
+      groups
+    } = await vkapi<Api.messages.getConversationMembers>('messages.getConversationMembers', {
       peer_id: id,
       fields
     });
@@ -241,14 +255,19 @@ export async function loadConversationMembers(id, force) {
     // Пользователь исключен/вышел из беседы, но т.к. юзер может вернуться,
     // здесь удаляется пометка беседы как загруженная для возможности повторить попытку
     if (err.error_code === 917) {
-      loadedConvMembers.delete(id);
+      loadedConversationMembers.delete(id);
     }
   }
 }
 
-const activeNotificationsTimers = new Map();
+const activeNotificationsTimers = new Map<number, NodeJS.Timeout>();
 
-export function addNotificationsTimer({ peer_id, disabled_until }, remove) {
+interface TemporaryNotification {
+  peer_id: number
+  disabled_until: number
+}
+
+export function addNotificationsTimer({ peer_id, disabled_until }: TemporaryNotification, remove?: boolean) {
   if (activeNotificationsTimers.has(peer_id)) {
     clearTimeout(activeNotificationsTimers.get(peer_id));
   }

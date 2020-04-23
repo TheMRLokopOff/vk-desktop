@@ -9,14 +9,15 @@
   </div>
 </template>
 
-<script>
-import vkapi from 'js/vkapi';
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { closeModal } from 'js/modals';
+import vkapi from 'js/vkapi';
 
 import ModalHeader from './ModalHeader.vue';
 import Button from '../UI/Button.vue';
 
-export default {
+export default defineComponent({
   props: ['peer_id'],
 
   components: {
@@ -35,7 +36,7 @@ export default {
       closeModal('clear-history');
     }
   }
-};
+});
 </script>
 
 <style>

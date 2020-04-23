@@ -4,13 +4,13 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue';
+<script lang="ts">
+import { defineComponent, ref, onMounted } from 'vue';
 import { capitalize } from 'js/utils';
 
 const getComponentName = (name) => capitalize(name) + 'ContextMenu';
 
-export default {
+export default defineComponent({
   components: [
     'peer'
   ].reduce((components, rawName) => {
@@ -56,7 +56,7 @@ export default {
       closeMenu
     };
   }
-};
+});
 </script>
 
 <style>

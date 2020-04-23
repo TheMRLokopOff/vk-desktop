@@ -1,11 +1,11 @@
-<script>
-import { h, computed, Fragment } from 'vue';
-import { loadConversationMembers, loadedConvMembers } from 'js/messages';
+<script lang="ts">
+import { defineComponent, h, computed, Fragment, VNode } from 'vue';
+import { loadConversationMembers, loadedConversationMembers } from 'js/messages';
 import { loadProfile, createParser } from 'js/utils';
 import getTranslate from 'js/getTranslate';
 import store from 'js/store';
 
-export default {
+export default defineComponent({
   props: ['msg', 'author', 'peer_id', 'isFull'],
 
   setup(props) {
@@ -20,9 +20,9 @@ export default {
 
     return () => serviceMessage.value;
   }
-};
+});
 
-const translateParser = createParser({
+const translateParser = createParser<string, VNode>({
   regexp: /{(\d)}/g,
   parseText: (value) => [value],
   parseElement(value, match, replaces) {
@@ -56,7 +56,7 @@ function getServiceMessage(msg, author, peer_id, isFull) {
       : 1; // Мужской пол
   }
 
-  function name(isActionUser, isAccCase) {
+  function name(isActionUser: 0 | 1, isAccCase: 0 | 1 = 0) {
     const user = isActionUser ? actUser : author;
 
     if (user.id === id) {
@@ -69,12 +69,12 @@ function getServiceMessage(msg, author, peer_id, isFull) {
         : `${user.first_name} ${user.last_name}`;
     }
 
-    if (!loadedConvMembers.has(peer_id)) {
-      // В случае, когда юзеры в беседе не загружены
-      loadConversationMembers(peer_id);
-    } else {
+    if (loadedConversationMembers.has(peer_id)) {
       // При добавлении нового юзера в беседу
       loadProfile(user.id);
+    } else {
+      // В случае, когда юзеры в беседе не загружены
+      loadConversationMembers(peer_id);
     }
 
     return '...';

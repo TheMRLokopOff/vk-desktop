@@ -1,6 +1,6 @@
-<script>
-import electron from 'electron';
+<script lang="ts">
 import { defineComponent, h, Fragment, computed } from 'vue';
+import electron from 'electron';
 import { emojiRegex, generateEmojiImageVNode } from 'js/emoji';
 import { createParser, unescape } from 'js/utils';
 import domains from 'js/json/domains.json';
@@ -69,17 +69,44 @@ export default defineComponent({
   }
 });
 
-const mentionRE = /\[(club|id)(\d+)\|(.+?)\]/g;
+const mentionRE = /\[(club|id)(\d+)\|(.+?)]/g;
 const linkRE =
-  /(?!\.|-)((https?:\/\/)?([a-zа-яё0-9.\-@]+\.([a-zа-яё]{2,18})|(?<localhost>(?<![a-zа-яё0-9])localhost)|(?<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))(?<port>:\d{1,5})?(\/(\S*(?<!\))[^.,!?();\n ])?)?)(?=$|\s|[^a-zа-яё0-9])/ig;
+  /(?![.-])((https?:\/\/)?([a-zа-яё0-9.\-@]+\.([a-zа-яё]{2,18})|(?<localhost>(?<![a-zа-яё0-9])localhost)|(?<ip>\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}))(?<port>:\d{1,5})?(\/(\S*(?<!\))[^.,!?();\n ])?)?)(?=$|\s|[^a-zа-яё0-9])/ig;
 
-const linkParser = createParser({
+interface TextType {
+  type: 'text'
+  value: string
+}
+
+interface LinkType {
+  type: 'link'
+  value: string
+  link: string
+}
+
+interface BrType {
+  type: 'br'
+}
+
+interface EmojiType {
+  type: 'emoji'
+  value: string
+}
+
+interface MentionType {
+  type: 'mention'
+  value: string
+  id: number
+  raw: string
+}
+
+const linkParser = createParser<TextType, LinkType>({
   regexp: linkRE,
   parseText: (value) => [{ type: 'text', value }],
   parseElement(value, match, isMention) {
     const { localhost, port, ip } = match.groups;
-    const isValidIP = !ip || !ip.split('.').find((v) => v > 255);
-    const isValidPort = !port || port.slice(1) <= 65535;
+    const isValidIP = !ip || !ip.split('.').find((v) => +v > 255);
+    const isValidPort = !port || +port.slice(1) <= 65535;
     const domain = match[4] && match[4].toLowerCase();
     const isValidDomain = isValidIP && isValidPort && (ip || localhost || domains.includes(domain));
 
@@ -95,19 +122,19 @@ const linkParser = createParser({
   }
 });
 
-const brParser = createParser({
+const brParser = createParser<LinkType, BrType>({
   regexp: /<br>/g,
   parseText: linkParser,
   parseElement: () => [{ type: 'br' }]
 });
 
-const emojiParser = createParser({
+const emojiParser = createParser<BrType, EmojiType>({
   regexp: emojiRegex,
   parseText: brParser,
   parseElement: (value) => [{ type: 'emoji', value }]
 });
 
-const mentionParser = createParser({
+const mentionParser = createParser<EmojiType, MentionType>({
   regexp: mentionRE,
   parseText: emojiParser,
   parseElement(mentionText, match) {
@@ -115,8 +142,8 @@ const mentionParser = createParser({
 
     return [{
       type: 'mention',
-      id: type === 'id' ? +id : -id,
       value: emojiParser(text, true),
+      id: type === 'id' ? +id : -id,
       raw: mentionText
     }];
   }

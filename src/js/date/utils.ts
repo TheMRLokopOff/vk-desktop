@@ -1,14 +1,14 @@
 import getTranslate from '../getTranslate';
 
-export function format(date, mask) {
-  const addZero = (num) => (num < 10 ? '0' + num : num);
+export function format(date: Date, mask: string) {
+  const addZero = (num: number) => (num < 10 ? '0' + num : '' + num);
   const months = getTranslate('months');
 
   const tokens = {
-    // год (----)
+    // год (nnnn)
     yyyy: () => date.getFullYear(),
 
-    // месяц (полное название; которкое название; 01-12; 1-12)
+    // месяц (полное название; короткое название; 01-12; 1-12)
     MMMM: () => months[date.getMonth()],
     MMM: () => tokens.MMMM().slice(0, 3),
     MM: () => addZero(tokens.M()),
@@ -31,62 +31,64 @@ export function format(date, mask) {
     s: () => date.getSeconds()
   };
 
-  Object.entries(tokens).forEach(([token, replacer]) => {
+  Object.entries(tokens).forEach(([token, replacer]: [string, () => string]) => {
     mask = mask.replace(token, replacer);
   });
 
   return mask;
 }
 
-function copyDate(date) {
+type DateOrNumber = Date | number;
+
+function copyDate(date: DateOrNumber) {
   return new Date(typeof date === 'number' ? date : date.getTime());
 }
 
-function startOfDay(date) {
+function startOfDay(date: DateOrNumber) {
   const copy = copyDate(date);
   copy.setHours(0, 0, 0, 0);
   return copy;
 }
 
-function addDays(date, count) {
+function addDays(date: DateOrNumber, count: number) {
   const copy = copyDate(date);
   copy.setDate(copy.getDate() + count);
   return copy;
 }
 
-function differenceInMilliseconds(d1, d2) {
+function differenceInMilliseconds(d1: Date, d2: Date) {
   return d1.getTime() - d2.getTime();
 }
 
-export function isSameDay(d1, d2) {
+export function isSameDay(d1: DateOrNumber, d2: DateOrNumber) {
   return startOfDay(d1).getTime() === startOfDay(d2).getTime();
 }
 
-export function isYesterday(date) {
+export function isYesterday(date: DateOrNumber) {
   return isSameDay(date, addDays(Date.now(), -1));
 }
 
-export function isSameYear(d1, d2) {
+export function isSameYear(d1: Date, d2: Date) {
   return d1.getFullYear() === d2.getFullYear();
 }
 
-export function differenceInSeconds(d1, d2) {
+export function differenceInSeconds(d1: Date, d2: Date) {
   return Math.round(differenceInMilliseconds(d1, d2) / 1000);
 }
 
-export function differenceInHours(d1, d2) {
+export function differenceInHours(d1: Date, d2: Date) {
   return Math.round(differenceInSeconds(d1, d2) / 3600);
 }
 
-export function differenceInYears(d1, d2) {
+export function differenceInYears(d1: Date, d2: Date) {
   return d1.getFullYear() - d2.getFullYear();
 }
 
 // Поддерживаются минуты и часы
-export function formatDistance(d1, d2) {
+export function formatDistance(d1: Date, d2: Date) {
   const seconds = differenceInSeconds(d1, d2);
 
-  function getDistanceTranslate(name, value) {
+  function getDistanceTranslate(name: string, value: number) {
     return getTranslate(name, [value === 1 ? '' : value], value);
   }
 

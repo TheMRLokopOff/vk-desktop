@@ -9,13 +9,13 @@
   </div>
 </template>
 
-<script>
-import { computed } from 'vue';
+<script lang="ts">
+import { defineComponent, computed } from 'vue';
 import { loadProfile } from 'js/utils';
 import getTranslate from 'js/getTranslate';
 import store from 'js/store';
 
-export default {
+export default defineComponent({
   props: ['peer_id', 'isChat'],
 
   setup(props) {
@@ -78,7 +78,7 @@ export default {
       text
     };
   }
-};
+});
 </script>
 
 <style>

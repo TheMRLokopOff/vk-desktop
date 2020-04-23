@@ -20,8 +20,8 @@
   </Ripple>
 </template>
 
-<script>
-import { reactive, computed, toRefs } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed, toRefs } from 'vue';
 import { getPeerAvatar, getPeerTitle, getPeerOnline } from 'js/messages';
 import store from 'js/store';
 import router from 'js/router';
@@ -30,7 +30,7 @@ import VKText from '../UI/VKText.vue';
 import Ripple from '../UI/Ripple.vue';
 import Icon from '../UI/Icon.vue';
 
-export default {
+export default defineComponent({
   props: ['peer'],
 
   components: {
@@ -64,7 +64,7 @@ export default {
       openChat
     };
   }
-};
+});
 </script>
 
 <style>

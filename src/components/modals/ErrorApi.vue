@@ -17,13 +17,14 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { closeModal } from 'js/modals';
 
 import ModalHeader from './ModalHeader.vue';
 import Button from '../UI/Button.vue';
 
-export default {
+export default defineComponent({
   props: ['method', 'error', 'retry'],
 
   components: {
@@ -47,7 +48,7 @@ export default {
       retry
     };
   }
-};
+});
 </script>
 
 <style>

@@ -53,8 +53,8 @@
   </div>
 </template>
 
-<script>
-import { reactive, toRefs, watch, nextTick, onMounted } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, toRefs, watch, nextTick, onMounted } from 'vue';
 import { debounce, endScroll, fields, concatProfiles, createQueueManager, timer } from 'js/utils';
 import { parseConversation, parseMessage } from 'js/messages';
 import vkapi from 'js/vkapi';
@@ -66,7 +66,7 @@ import Scrolly from '../UI/Scrolly.vue';
 import MessagesPeer from './MessagesPeer.vue';
 import MessagesProfile from './MessagesProfile.vue';
 
-export default {
+export default defineComponent({
   components: {
     HeaderButton,
     Icon,
@@ -182,7 +182,7 @@ export default {
       onScroll
     };
   }
-};
+});
 </script>
 
 <style>

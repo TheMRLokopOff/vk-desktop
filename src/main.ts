@@ -21,6 +21,7 @@ app.mixin({
 
 app.mount('#app');
 
+// Electron предоставляет неверный тип
 const win = electron.remote.getCurrentWindow() as any;
 
 shortcut(['Control+Shift+I', 'F12'], () => {

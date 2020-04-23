@@ -1,6 +1,6 @@
 import { isObject } from './utils';
 
-function processCopy(value) {
+function processCopy(value: any) {
   if (isObject(value)) {
     return copyObject(value);
   } else if (Array.isArray(value)) {
@@ -20,8 +20,8 @@ function copyArray(arr: any[]) {
   return newArr;
 }
 
-export default function copyObject(obj: { [key: string]: any }) {
-  const newObj: { [key: string]: any } = {};
+export default function copyObject<ObjType>(obj: ObjType) {
+  const newObj = {} as ObjType;
 
   for (const key in obj) {
     newObj[key] = processCopy(obj[key]);

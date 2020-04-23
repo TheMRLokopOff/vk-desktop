@@ -24,8 +24,8 @@
   </Scrolly>
 </template>
 
-<script>
-import { reactive, computed, onMounted, nextTick, toRefs } from 'vue';
+<script lang="ts">
+import { defineComponent, reactive, computed, onMounted, nextTick, toRefs } from 'vue';
 import { createQueueManager, concatProfiles, fields, endScroll } from 'js/utils';
 import { parseMessage, parseConversation } from 'js/messages';
 import store from 'js/store';
@@ -34,7 +34,7 @@ import vkapi from 'js/vkapi';
 import Scrolly from '../../UI/Scrolly.vue';
 import MessagesList from './MessagesList.vue';
 
-export default {
+export default defineComponent({
   props: ['peer_id', 'peer'],
 
   components: {
@@ -194,7 +194,7 @@ export default {
       onScroll
     };
   }
-};
+});
 </script>
 
 <style>
