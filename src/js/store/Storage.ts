@@ -47,7 +47,7 @@ export const defaultUserSettings = {
   devShowPeerId: false
 };
 
-interface UsersStorage {
+export interface UsersStorage {
   activeUser: number | null
   trustedHashes: Record<string, string>
   users: Record<number, Account>
@@ -63,7 +63,7 @@ export const usersStorage = new Storage<UsersStorage>({
   }
 });
 
-interface SettingsStorage {
+export interface SettingsStorage {
   window: Electron.Rectangle
   langName: 'ru'
   userSettings: {

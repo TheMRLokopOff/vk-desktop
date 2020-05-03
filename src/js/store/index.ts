@@ -1,5 +1,5 @@
-// @ts-ignore
 import { createStore, MutationPayload } from 'vuex';
+import { State } from './State';
 import { settingsStorage, usersStorage } from './Storage';
 
 import rootModule from './modules/index';
@@ -7,7 +7,7 @@ import messages from './modules/messages';
 import settings from './modules/settings';
 import users from './modules/users';
 
-const store: any = createStore({
+const store = createStore<State>({
   ...rootModule,
   modules: {
     messages,
@@ -16,10 +16,10 @@ const store: any = createStore({
   }
 });
 
-store.subscribe(({ type }: MutationPayload, state: any) => {
-  if (/^settings\//.test(type)) {
+store.subscribe(({ type }: MutationPayload, state) => {
+  if (type.startsWith('settings/')) {
     settingsStorage.update(state.settings);
-  } else if (/^users\//.test(type)) {
+  } else if (type.startsWith('users/')) {
     usersStorage.update(state.users);
   }
 });

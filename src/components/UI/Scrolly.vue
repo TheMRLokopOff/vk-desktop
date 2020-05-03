@@ -179,7 +179,7 @@ export default defineComponent({
       window.addEventListener('mouseup', onMouseUp);
     }
 
-    function activateScrollBars({ enter, force } = {}) {
+    function activateScrollBars({ enter, force }: { enter?: boolean, force?: boolean } = {}) {
       if (enter) {
         state.isActive = true;
         clearTimer();

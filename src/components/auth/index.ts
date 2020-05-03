@@ -12,7 +12,7 @@ interface GetAndroidTokenParams {
 }
 
 // TODO OAuthResult
-type OAuthResult = { [key: string]: any };
+type OAuthResult = Record<string, any>;
 
 export function getAndroidToken(login: string, password: string, params: GetAndroidTokenParams = {}) {
   return new Promise(async (resolve) => {

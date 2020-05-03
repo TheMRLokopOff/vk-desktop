@@ -31,11 +31,11 @@ import ModalsWrapper from './ModalsWrapper.vue';
 import ContextMenuWrapper from './ContextMenus/ContextMenuWrapper.vue';
 
 // для разработки / дебага
-window.vkapi = vkapi;
-window.store = store;
-window.router = router;
-window.longpoll = longpoll;
-window.request = request;
+(window as any).vkapi = vkapi;
+(window as any).store = store;
+(window as any).router = router;
+(window as any).longpoll = longpoll;
+(window as any).request = request;
 
 export default defineComponent({
   components: {

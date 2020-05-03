@@ -77,7 +77,7 @@ export function differenceInSeconds(d1: Date, d2: Date) {
 }
 
 export function differenceInHours(d1: Date, d2: Date) {
-  return Math.round(differenceInSeconds(d1, d2) / 3600);
+  return Math.round(differenceInSeconds(d1, d2) / 60 * 60);
 }
 
 export function differenceInYears(d1: Date, d2: Date) {

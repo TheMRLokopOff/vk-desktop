@@ -5,7 +5,7 @@ export const modalsState = reactive({
   hasModals: computed<boolean>(() => !!Object.keys(modalsState.modals).length)
 });
 
-export function openModal(name: string, props: { [key: string]: any }) {
+export function openModal(name: string, props?: Record<string, any>) {
   modalsState.modals[name] = {
     name,
     props

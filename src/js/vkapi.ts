@@ -1,4 +1,5 @@
 import querystring from 'querystring';
+import electron from 'electron';
 import { Account } from 'types/shared';
 import { VKDesktopUserAgent, AndroidUserAgent } from './utils';
 import request from './request';
@@ -86,10 +87,23 @@ addErrorHandler(14, ({ name, params, data, resolve, reject }) => {
   });
 });
 
-addErrorHandler(17, async ({ data, reject }) => {
+addErrorHandler(17, async ({ data, resolve, reject }) => {
   const { data: redirectPage } = await request<string>(data.error.redirect_uri, { raw: true });
-  const goCaptchaLink = 'https://m.vk.com' +
-    /<div class="fi_row"><a href="(.+?)" rel="noopener">/.exec(redirectPage)[1];
+  const goCaptchaLinkMatch = /<div class="fi_row"><a href="(.+?)" rel="noopener">/.exec(redirectPage);
+
+  // Это не ошибка подтверждения аккаунта, а запланированное действие, доступное только по данной ссылке
+  if (!goCaptchaLinkMatch) {
+    // Когда будет нужно можно будет переделать это в модальное окно электрона
+    // и реализовать ожидание выхода из него, чтобы продолжить уже в клиенте.
+    electron.shell.openItem(data.error.redirect_uri);
+
+    return resolve({
+      type: 'redirect',
+      link: data.error.redirect_uri
+    });
+  }
+
+  const goCaptchaLink = 'https://m.vk.com' + goCaptchaLinkMatch[1];
   const { data: firstCaptchaPage } = await request<string>(goCaptchaLink, { raw: true });
   let success = false;
   let captchaPage = firstCaptchaPage;

@@ -97,6 +97,8 @@
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/unbound-method": "off",
     "@typescript-eslint/class-name-casing": "off",
+    "@typescript-eslint/await-thenable": "off",
+    "@typescript-eslint/prefer-regexp-exec": "off",
     "@typescript-eslint/member-delimiter-style": ["error", {
       "multiline": {
         "delimiter": "none",
@@ -111,6 +113,7 @@
     "no_unused_vars": "off",
     "@typescript-eslint/no-unused-vars": ["error"],
 
+    "import/export": "off",
     "import/no-cycle": "off",
     "import/no-dynamic-require": "off",
     "import/prefer-default-export": "off",

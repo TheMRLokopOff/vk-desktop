@@ -7,11 +7,11 @@
           :key="ripple.id"
           class="ripple"
           :style="{
+            background,
             top: ripple.top,
             left: ripple.left,
             width: ripple.width,
-            height: ripple.height,
-            background: color
+            height: ripple.height
           }"
         />
       </TransitionGroup>
@@ -29,7 +29,7 @@ export default defineComponent({
 
   setup(props) {
     const ripples = ref([]);
-    const color = computed(() => props.color || 'rgba(255, 255, 255, .3)');
+    const background = computed(() => props.color || 'rgba(255, 255, 255, .3)');
 
     function addRipple(event) {
       const { left, top } = this.$el.getBoundingClientRect();
@@ -51,7 +51,7 @@ export default defineComponent({
     }
 
     return {
-      color,
+      background,
       ripples,
       addRipple
     };

@@ -1,5 +1,5 @@
-const electron = require('electron');
 const { spawn } = require('child_process');
+const electron = require('electron');
 const path = require('path');
 
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
