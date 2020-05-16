@@ -21,6 +21,7 @@ export interface MessageAction {
   type:
     | 'chat_create' | 'chat_photo_update' | 'chat_photo_remove' | 'chat_title_update' | 'chat_pin_message'
     | 'chat_unpin_message' | 'chat_invite_user' | 'chat_invite_user_by_link' | 'chat_kick_user' | 'chat_screenshot'
+    | 'chat_group_call_started'
   // chat_create, chat_title_update
   text?: string
   // chat_pin_message
