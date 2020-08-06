@@ -12,32 +12,37 @@ const getProjectAliases = require('./getProjectAliases');
 
 module.exports = function(env, { mode = 'development' } = {}) {
   const isDev = mode === 'development';
+  const minimizer = [];
+
+  if (!isDev) {
+    minimizer.push(
+      new TerserWebpackPlugin({
+        extractComments: false,
+        terserOptions: {
+          ecma: 8,
+          module: true,
+          compress: {
+            keep_fargs: false,
+            passes: 2,
+            unsafe: true,
+            unsafe_arrows: true,
+            unsafe_methods: true,
+            unsafe_proto: true
+          },
+          output: {
+            comments: false
+          }
+        }
+      })
+    );
+  }
 
   return {
     mode,
     target: 'electron-renderer',
     stats: { children: false },
     optimization: {
-      minimizer: [
-        new TerserWebpackPlugin({
-          extractComments: false,
-          terserOptions: {
-            ecma: 8,
-            module: true,
-            compress: {
-              keep_fargs: false,
-              passes: 2,
-              unsafe: true,
-              unsafe_arrows: true,
-              unsafe_methods: true,
-              unsafe_proto: true
-            },
-            output: {
-              comments: false
-            }
-          }
-        })
-      ]
+      minimizer
     },
     entry: './src/main.ts',
     output: {
@@ -64,6 +69,8 @@ module.exports = function(env, { mode = 'development' } = {}) {
         {
           test: /\.vue$/,
           loader: 'vue-loader',
+          // Сработает ли это для Icon.vue?
+          // include: path.resolve(__dirname, 'src/components'),
           exclude: /node_modules/
         },
         {
@@ -72,6 +79,7 @@ module.exports = function(env, { mode = 'development' } = {}) {
           options: {
             appendTsSuffixTo: [/\.vue$/]
           },
+          include: path.resolve(__dirname, 'src'),
           exclude: /node_modules/
         },
         {
@@ -82,11 +90,13 @@ module.exports = function(env, { mode = 'development' } = {}) {
               options: { hmr: isDev }
             },
             'css-loader'
-          ]
+          ],
+          include: path.resolve(__dirname, 'src/css'),
         },
         {
           test: /\.(png|webp|svg|gif|ttf)$/,
           loader: 'file-loader',
+          include: path.resolve(__dirname, 'src/assets'),
           options: {
             publicPath: 'assets/',
             name: '[name].[ext]',
@@ -111,7 +121,7 @@ module.exports = function(env, { mode = 'development' } = {}) {
       })
     ],
     resolve: {
-      extensions: ['.ts'],
+      extensions: ['.js', '.ts'],
       symlinks: false,
       alias: getProjectAliases('webpack')
     }

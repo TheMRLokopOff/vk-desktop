@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "webpack-dev-server --mode development --hot",
     "build": "yarn run dist && yarn run pack",
-    "lint": "eslint src --ext .vue,.ts,.js && stylelint src/**/*.{vue,css}",
+    "lint": "eslint src --ext .vue,.ts && stylelint src/**/*.{vue,css}",
     "test": "jest",
     "dist": "webpack --mode production",
     "pack": "electron-builder --config build/config.json",

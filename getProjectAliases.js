@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = (type) => (
-  ['assets', 'components', 'css', 'js', 'lang'].reduce((aliases, name) => {
+  ['assets', 'components', 'css', 'js', 'lang', 'types'].reduce((aliases, name) => {
     if (type === 'webpack') {
       aliases[name] = path.resolve(__dirname, 'src/' + name);
     }

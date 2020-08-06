@@ -6,6 +6,7 @@ import { usersStorage } from './store/Storage';
 import vkapi from './vkapi';
 import store from './store';
 import copyObject from './copyObject';
+import { ExecuteGetProfiles, ExecuteGetProfilesParams, IAccount, VKGroup, VKImageSize, VKUser } from 'types';
 
 // --- Переменные
 
@@ -18,15 +19,15 @@ export const fields = 'photo_50,photo_100,verified,sex,status,first_name_acc,las
 
 export const eventBus = new EventEmitter();
 
-export const currentWindow = electron.remote.getCurrentWindow();
+export const currentWindow: any = electron.remote.getCurrentWindow();
 
 // --- Основные утилиты
 
-export function timer(time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
+export function timer(time: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, time));
 }
 
-export function escape(text) {
+export function escape(text: string) {
   return text
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
@@ -34,7 +35,7 @@ export function escape(text) {
     .replace(/>/g, '&gt;');
 }
 
-export function unescape(text) {
+export function unescape(text: string) {
   return text
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
@@ -42,29 +43,29 @@ export function unescape(text) {
     .replace(/&gt;/g, '>');
 }
 
-export function random(min, max) {
+export function random(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export function capitalize(str) {
+export function capitalize(str: string) {
   return str[0].toUpperCase() + str.slice(1);
 }
 
-export function isObject(obj) {
+export function isObject(obj: unknown): obj is Record<string, any> {
   return obj && !Array.isArray(obj) && typeof obj === 'object';
 }
 
-export function toUrlParams(object) {
+export function toUrlParams(object: Record<string, any>) {
   return new URLSearchParams(object).toString();
 }
 
 // --- Функции-обертки
 
 // Вызывает переданную функцию через delay мс после последнего вызова
-export function debounce(fn, delay) {
-  let timerId;
+export function debounce(fn: () => void, delay: number) {
+  let timerId: NodeJS.Timeout;
 
-  return function(...args) {
+  return function(...args: any[]) {
     if (timerId) {
       clearTimeout(timerId);
     }
@@ -78,10 +79,10 @@ export function debounce(fn, delay) {
 
 // Вызывает переданную функцию, если после последнего вызова прошло более delay мс.
 // Это значит, что функция может вообще не вызваться, что не всегда нужно
-export function throttle(fn, delay) {
+export function throttle(fn: () => void, delay: number) {
   let lastCall = 0;
 
-  return function(...args) {
+  return function(...args: any[]) {
     const now = Date.now();
 
     if (now - lastCall < delay) {
@@ -94,11 +95,11 @@ export function throttle(fn, delay) {
 }
 
 // Вызывает переданную функцию через delay мс после первого вызова
-export function callWithDelay(fn, delay) {
-  let timerId;
-  let fnArgs;
+export function callWithDelay(fn: () => void, delay: number) {
+  let timerId: NodeJS.Timeout;
+  let fnArgs: any[];
 
-  return function(...args) {
+  return function(...args: any[]) {
     fnArgs = args;
 
     if (!timerId) {
@@ -111,8 +112,15 @@ export function callWithDelay(fn, delay) {
 }
 
 // Выполняет асинхронную функцию только когда прошлая функция уже была выполнена
-export function createQueueManager(fn) {
-  const queue = [];
+
+interface QueueItem {
+  args: any[]
+  context: unknown
+  resolve: (arg?: any) => void
+}
+
+export function createQueueManager<ReturnType>(fn: (...args: any[]) => Promise<ReturnType>) {
+  const queue: QueueItem[] = [];
   let isExecuting = false;
 
   async function executeQueue() {
@@ -127,8 +135,8 @@ export function createQueueManager(fn) {
     }
   }
 
-  return function(...args) {
-    return new Promise((resolve) => {
+  return function(...args: any[]) {
+    return new Promise<ReturnType>((resolve) => {
       queue.push({ args, resolve, context: this });
 
       if (queue.length === 1 && !isExecuting) {
@@ -144,24 +152,37 @@ export function createQueueManager(fn) {
 // 125 -> 125
 // 12.732 -> 12K
 // 5.324.267 -> 5M
-export function convertCount(count) {
+export function convertCount(count: number) {
   if (count >= 1e6) {
     return Math.floor(count / 1e6) + 'M';
   } else if (count >= 1e3) {
     return Math.floor(count / 1e3) + 'K';
   }
 
-  return count;
+  return '' + count;
 }
 
-export function getPhoto(user) {
+export function getPhoto(user: IAccount | null) {
   return user && (devicePixelRatio > 1 ? user.photo_100 : user.photo_50);
 }
 
 // Возвращает фотографию нужного размера из объекта фотографий
-export function getPhotoFromSizes(sizes, size, isDoc) {
-  const find = (type) => sizes.find((photo) => photo.type === type);
+export function getPhotoFromSizes(sizes: VKImageSize[], size: string | string[], isDoc: boolean) {
+  const find = (type: string) => sizes.find((photo) => photo.type === type);
   const optionalTypes = isDoc ? ['z', 'y', 'x', 'm', 's'] : ['w', 'z', 'y'];
+
+  if (Array.isArray(size)) {
+    for (let i = 0; i < size.length; i++) {
+      const photo = find(size[i]);
+
+      if (photo) {
+        return photo;
+      }
+    }
+
+    return;
+  }
+
   const index = optionalTypes.indexOf(size);
 
   if (index !== -1) {
@@ -174,21 +195,16 @@ export function getPhotoFromSizes(sizes, size, isDoc) {
     }
 
     return isDoc ? find('o') : find('x');
-  } else if (Array.isArray(size)) {
-    for (let i = 0; i < size.length; i++) {
-      const photo = find(size[i]);
-
-      if (photo) {
-        return photo;
-      }
-    }
   }
 
   return find(size);
 }
 
 // Собирает массивы профилей и групп в единый массив, где у групп отрицательный id
-export function concatProfiles(profiles, groups) {
+export function concatProfiles(
+  profiles: VKUser[] | null,
+  groups: VKGroup[] | null
+): (VKUser | VKGroup)[] {
   profiles = profiles || [];
   groups = groups || [];
 
@@ -203,8 +219,17 @@ export function concatProfiles(profiles, groups) {
 
 // Возвращает функцию, которая вызывает колбэк, если юзер долистал
 // список до конца (или в начало), чтобы загрузить новую часть списка
-export function endScroll(callback, reverse) {
-  return function({ viewport: { scrollTop, scrollHeight, offsetHeight } }) {
+export function endScroll(
+  callback: (result: { isUp: boolean, isDown: boolean }) => void,
+  reverse?: boolean | -1
+) {
+  return function(
+    { viewport: { scrollTop, scrollHeight, offsetHeight } }: { viewport: HTMLDivElement }
+  ) {
+    // eslint-disable-next-line prefer-rest-params
+    console.log(arguments[0]);
+    console.log('TODO ДОПИСАТЬ ТИПЫ ЗДЕСЬ');
+
     // Если блок пустой либо видимая область блока = 0px.
     // Обычно возникает когда у блока стоит display: none или он скрыт другим способом.
     if (!scrollHeight || !offsetHeight) {
@@ -214,9 +239,15 @@ export function endScroll(callback, reverse) {
     const isScrolledUp = scrollTop <= 100;
     const isScrolledDown = scrollTop + offsetHeight + 100 >= scrollHeight;
 
-    // reverse = 0: проверять скролл вниз
-    // reverse = 1: проверять скролл вверх
-    // reverse = -1: проверять все сразу
+    /**
+     * Значения reverse:
+     *
+     * 0 - проверять скролл вниз
+     *
+     * 1 - проверять скролл вверх
+     *
+     * -1 - проверять все сразу
+     */
     const isScrolled = reverse
       ? (reverse === -1 ? (isScrolledUp || isScrolledDown) : isScrolledUp)
       : isScrolledDown;
@@ -230,9 +261,9 @@ export function endScroll(callback, reverse) {
   };
 }
 
-export function onTransitionEnd(el, anyTarget) {
-  return new Promise((resolve) => {
-    function onTransitionEndListener(event) {
+export function onTransitionEnd(el: HTMLElement, anyTarget: boolean) {
+  return new Promise<void>((resolve) => {
+    function onTransitionEndListener(event: Event) {
       if (!anyTarget && event.target !== el) {
         return;
       }
@@ -257,10 +288,10 @@ export function logout() {
   window.location.reload();
 }
 
-const loadingProfiles = [];
+const loadingProfiles: number[] = [];
 let isLoadingProfiles = false;
 
-export async function loadProfile(id) {
+export async function loadProfile(id?: number) {
   if (loadingProfiles.includes(id)) {
     return;
   } else if (id) {
@@ -274,10 +305,10 @@ export async function loadProfile(id) {
   isLoadingProfiles = true;
 
   const profiles = loadingProfiles.slice();
-  const newProfiles = await vkapi('execute.getProfiles', {
+  const newProfiles = await vkapi<ExecuteGetProfiles, ExecuteGetProfilesParams>('execute.getProfiles', {
     profile_ids: profiles.join(','),
-    func_v: 2,
-    fields
+    fields,
+    func_v: 2
   });
 
   store.commit('addProfiles', newProfiles);
@@ -290,7 +321,7 @@ export async function loadProfile(id) {
   }
 }
 
-export function getAppName(app_id) {
+export function getAppName(app_id: number) {
   switch (app_id) {
     case 2274003:
       return 'Android';
@@ -325,7 +356,7 @@ export function getAppName(app_id) {
   }
 }
 
-// export async function downloadFile(src, withRedirect, progress) {
+// export async function downloadFile(src: string, withRedirect?: boolean, progress?: Function) {
 //   const files = electron.remote.dialog.showOpenDialogSync({
 //     properties: ['openDirectory']
 //   });
@@ -345,7 +376,7 @@ export function getAppName(app_id) {
 //   }
 // }
 
-// export function parseMp3Link(url) {
+// export function parseMp3Link(url: string) {
 //   if (url.includes('.mp3?')) {
 //     return url;
 //   }

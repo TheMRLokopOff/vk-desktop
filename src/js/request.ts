@@ -7,7 +7,7 @@ type RequestParams = string | https.RequestOptions;
 interface RequestOptions {
   raw?: boolean
   timeout?: number
-  postData?: string
+  body?: string
   multipart?: Record<string, {
     filename: string
     contentType: string
@@ -23,27 +23,28 @@ interface RequestOptions {
 
 interface RequestResult<ResponseType> {
   data: ResponseType
-  headers: http.IncomingHttpHeaders
+  headers: import('http').IncomingHttpHeaders
   statusCode: number
 }
 
-// Возможные варианты передачи параметров:
-// 1. request(paramsOrUrl, options?)
-// 2. request(url, params, options)
-// 3. request(url, params, {})
-// т.е. при наличии params обязательно наличие и options,
-// а так же первый аргумент должен быть строкой
-function request<ResponseType>(paramsOrUrl: RequestParams, options: RequestOptions): RequestResult<ResponseType>;
-function request<ResponseType>(url: string, params: https.RequestOptions, options: RequestOptions): RequestResult<ResponseType>;
-function request<ResponseType>(paramsOrUrl: RequestParams, paramsOrOptions: https.RequestOptions | RequestOptions = {}, options: RequestOptions): RequestResult<ResponseType> {
-  if (!options) {
+/**
+ * 1. request(paramsOrUrl)
+ * 2. request(paramsOrUrl, options)
+ * 3. request(url, params, options)
+ */
+function request<ResponseType>(
+  paramsOrUrl: https.RequestOptions | string,
+  paramsOrOptions?: https.RequestOptions | RequestOptions,
+  options?: RequestOptions
+) {
+  if (arguments.length < 3) {
     options = paramsOrOptions;
-    paramsOrOptions = {};
+    paramsOrOptions = {} as https.RequestOptions;
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise<RequestResult<ResponseType>>((resolve, reject) => {
     function handleRequest(res) {
-      const chunks = [];
+      const chunks: Uint8Array[] = [];
       const MB = 1 << 20;
       const contentLength = +res.headers['content-length'];
       let loadedLength = 0;
@@ -52,7 +53,7 @@ function request<ResponseType>(paramsOrUrl: RequestParams, paramsOrOptions: http
         res.pipe(options.pipe);
       }
 
-      res.on('data', (chunk) => {
+      res.on('data', (chunk: Uint8Array) => {
         if (!options.pipe) {
           chunks.push(chunk);
         }
@@ -107,7 +108,7 @@ function request<ResponseType>(paramsOrUrl: RequestParams, paramsOrOptions: http
 //     contentType: 'image/png'
 //   }
 // }
-async function sendMultipart(req, files) {
+async function sendMultipart(req: import('http').ClientRequest, files: RequestOptions['multipart']) {
   const names = Object.keys(files);
   const boundary = Math.random().toString(16);
 
@@ -141,7 +142,7 @@ async function sendMultipart(req, files) {
 
 // Промис сохраняется для того, чтобы при дальнейших вызовах request
 // не создавался новый промис, а ожидалось завершение созданного ранее
-let waitConnectionPromise;
+let waitConnectionPromise: Promise<void>;
 
 async function waitConnection() {
   while (true) {
@@ -161,10 +162,14 @@ async function waitConnection() {
   }
 }
 
-export default async function(...data) {
+export default async function<ResponseType>(
+  paramsOrUrl: https.RequestOptions | string,
+  paramsOrOptions?: https.RequestOptions | RequestOptions,
+  options?: RequestOptions
+) {
   while (true) {
     try {
-      return await request(...data);
+      return await request<ResponseType>(paramsOrUrl, paramsOrOptions, options);
     } catch (err) {
       // Если ошибка не относится к проблемам с сетью, то выкидываем ошибку
       if (!['ETIMEDOUT', 'ECONNRESET', 'ENOTFOUND'].includes(err.code)) {

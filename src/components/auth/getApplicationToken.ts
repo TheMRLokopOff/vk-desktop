@@ -1,5 +1,3 @@
-import request from 'js/request';
-
 interface GetApplicationTokenParams {
   app_id: number
   scope?: string | number
@@ -13,5 +11,5 @@ interface GetApplicationTokenParams {
 }
 
 export function getApplicationToken(params: GetApplicationTokenParams) {
-
+  return params;
 }

@@ -12,7 +12,7 @@ import {
 } from './utils';
 import getTranslate from '../getTranslate';
 
-export function getTime(date) {
+export function getTime(date: Date) {
   return format(date, 'hh:mm');
 }
 

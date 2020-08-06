@@ -15,8 +15,12 @@ interface GetAndroidTokenParams {
 // TODO OAuthResult
 type OAuthResult = Record<string, any>;
 
-export function getAndroidToken(login: string, password: string, params: GetAndroidTokenParams = {}) {
-  return new Promise(async (resolve) => {
+export function getAndroidToken(
+  login: string,
+  password: string,
+  params: GetAndroidTokenParams = {}
+) {
+  return new Promise<OAuthResult>(async (resolve) => {
     const query = toUrlParams({
       scope: 'all',
       client_id: 2274003,
@@ -80,7 +84,7 @@ async function getDesktopToken(androidToken) {
     sdk_fingerprint: '9E76F3AF885CD6A1E2378197D4E7DF1B2C17E46C'
   });
 
-  const { data } = await request(`https://oauth.vk.com/authorize?${query}`, {
+  const { data } = await request<string>(`https://oauth.vk.com/authorize?${query}`, {
     headers: {
       'User-Agent': VKDesktopUserAgent
     }

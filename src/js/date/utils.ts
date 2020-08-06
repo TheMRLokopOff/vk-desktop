@@ -4,7 +4,7 @@ function floor(num) {
   return num < 0 ? Math.ceil(num) : Math.floor(num);
 }
 
-export function format(date, mask) {
+export function format(date: Date, mask) {
   const addZero = (num) => (num < 10 ? '0' + num : num);
   const months = getTranslate('months');
 
