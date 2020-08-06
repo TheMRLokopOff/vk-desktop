@@ -25,7 +25,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs, onMounted, onActivated } from 'vue';
 import { eventBus } from 'js/utils';
 import { loadConversation, loadConversationMembers } from 'js/messages';

@@ -44,7 +44,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs } from 'vue';
 import { getPhoto, capitalize, loadProfile } from 'js/utils';
 import { getPeerTitle } from 'js/messages';

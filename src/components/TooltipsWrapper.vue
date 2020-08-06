@@ -7,7 +7,7 @@
   </Transition>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, nextTick } from 'vue';
 import getTranslate from 'js/getTranslate';
 

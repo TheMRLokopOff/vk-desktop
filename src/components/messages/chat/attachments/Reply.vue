@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs } from 'vue';
 import { getPhotoFromSizes, eventBus } from 'js/utils';
 import { getMessagePreview, getPeerTitle, parseMessage } from 'js/messages';

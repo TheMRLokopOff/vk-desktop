@@ -9,7 +9,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { logout } from 'js/utils';
 import { closeModal } from 'js/modals';
 

@@ -34,7 +34,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, toRefs, onMounted, onBeforeUnmount } from 'vue';
 import { debounce } from 'js/utils';
 

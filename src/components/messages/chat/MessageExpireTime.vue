@@ -5,7 +5,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, onUnmounted } from 'vue';
 import { format } from 'js/date/utils';
 import getTranslate from 'js/getTranslate';

@@ -28,7 +28,7 @@
   </Touch>
 </template>
 
-<script>
+<script lang="ts">
 import { getPhotoFromSizes } from 'js/utils';
 
 import Touch from '../../UI/Touch.vue';

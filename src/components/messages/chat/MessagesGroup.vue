@@ -26,7 +26,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { computed, reactive } from 'vue';
 import { getPhoto } from 'js/utils';
 import { getPeerTitle } from 'js/messages';

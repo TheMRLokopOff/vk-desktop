@@ -47,7 +47,7 @@
   </Scrolly>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, onMounted, onActivated, nextTick, toRefs } from 'vue';
 import {
   createQueueManager,

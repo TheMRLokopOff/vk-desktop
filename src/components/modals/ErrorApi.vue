@@ -17,7 +17,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { closeModal } from 'js/modals';
 
 import ModalHeader from './ModalHeader.vue';

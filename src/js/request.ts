@@ -2,13 +2,40 @@ import { promises as dns } from 'dns';
 import https from 'https';
 import { timer, isObject } from './utils';
 
+type RequestParams = string | https.RequestOptions;
+
+interface RequestOptions {
+  raw?: boolean
+  timeout?: number
+  postData?: string
+  multipart?: Record<string, {
+    filename: string
+    contentType: string
+    value: NodeJS.ReadableStream
+  }>
+  pipe?: NodeJS.WritableStream
+  progress?(options: {
+    size: number
+    downloaded: number
+    progress: number
+  }): void
+}
+
+interface RequestResult<ResponseType> {
+  data: ResponseType
+  headers: http.IncomingHttpHeaders
+  statusCode: number
+}
+
 // Возможные варианты передачи параметров:
 // 1. request(paramsOrUrl, options?)
 // 2. request(url, params, options)
 // 3. request(url, params, {})
 // т.е. при наличии params обязательно наличие и options,
 // а так же первый аргумент должен быть строкой
-function request(paramsOrUrl, paramsOrOptions = {}, options) {
+function request<ResponseType>(paramsOrUrl: RequestParams, options: RequestOptions): RequestResult<ResponseType>;
+function request<ResponseType>(url: string, params: https.RequestOptions, options: RequestOptions): RequestResult<ResponseType>;
+function request<ResponseType>(paramsOrUrl: RequestParams, paramsOrOptions: https.RequestOptions | RequestOptions = {}, options: RequestOptions): RequestResult<ResponseType> {
   if (!options) {
     options = paramsOrOptions;
     paramsOrOptions = {};

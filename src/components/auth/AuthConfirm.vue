@@ -17,7 +17,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs, onMounted } from 'vue';
 import { onTransitionEnd, timer } from 'js/utils';
 import { format } from 'js/date/utils';
@@ -83,7 +83,7 @@ export default {
         await onTransitionEnd(state.input);
         await timer(500);
         state.error = false;
-      } else {
+      } else if (data.access_token) {
         loadUser(data.access_token, props.isModal);
       }
     }

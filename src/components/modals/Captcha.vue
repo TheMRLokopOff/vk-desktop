@@ -21,7 +21,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs, onMounted } from 'vue';
 import { closeModal } from 'js/modals';
 

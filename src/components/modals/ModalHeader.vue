@@ -8,7 +8,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import CloseModal from './CloseModal.vue';
 
 export default {

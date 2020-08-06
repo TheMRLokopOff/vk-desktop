@@ -4,7 +4,18 @@ import vkapi, { version } from 'js/vkapi';
 import store from 'js/store';
 import request from 'js/request';
 
-export function getAndroidToken(login, password, params = {}) {
+export { getApplicationToken } from './getApplicationToken';
+
+interface GetAndroidTokenParams {
+  code?: string
+  captcha_sid?: string
+  captcha_key?: string
+}
+
+// TODO OAuthResult
+type OAuthResult = Record<string, any>;
+
+export function getAndroidToken(login: string, password: string, params: GetAndroidTokenParams = {}) {
   return new Promise(async (resolve) => {
     const query = toUrlParams({
       scope: 'all',
@@ -20,7 +31,7 @@ export function getAndroidToken(login, password, params = {}) {
       ...params
     });
 
-    const { data } = await request(`https://oauth.vk.com/token?${query}`, {
+    const { data } = await request<OAuthResult>(`https://oauth.vk.com/token?${query}`, {
       headers: {
         'User-Agent': AndroidUserAgent
       }

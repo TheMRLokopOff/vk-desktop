@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { h, ref, onMounted } from 'vue';
 
 export default {

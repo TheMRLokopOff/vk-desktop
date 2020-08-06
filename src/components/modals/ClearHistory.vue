@@ -9,7 +9,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { closeModal } from 'js/modals';
 import vkapi from 'js/vkapi';
 

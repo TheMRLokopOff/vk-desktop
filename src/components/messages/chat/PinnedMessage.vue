@@ -27,7 +27,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs } from 'vue';
 import { eventBus } from 'js/utils';
 import { getMessagePreview, getPeerTitle } from 'js/messages';

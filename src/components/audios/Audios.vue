@@ -6,7 +6,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import BottomMenu from '../menu/BottomMenu.vue';
 
 export default {

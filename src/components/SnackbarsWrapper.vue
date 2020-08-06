@@ -16,7 +16,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { snackbarsState } from 'js/snackbars';
 
 import Icon from './UI/Icon.vue';

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { h, computed } from 'vue';
 import Ripple from './Ripple.vue';
 

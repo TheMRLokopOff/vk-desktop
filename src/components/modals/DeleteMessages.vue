@@ -20,7 +20,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { computed } from 'vue';
 import { closeModal } from 'js/modals';
 import store from 'js/store';

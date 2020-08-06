@@ -29,7 +29,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs, onMounted } from 'vue';
 import { onTransitionEnd, timer } from 'js/utils';
 import { openModal } from 'js/modals';
@@ -90,7 +90,7 @@ export default {
           login: state.login,
           password: state.password
         });
-      } else {
+      } else if (data.access_token) {
         loadUser(data.access_token, props.isModal);
       }
     }

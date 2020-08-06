@@ -7,7 +7,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import ModalHeader from './ModalHeader.vue';
 import Auth from '../auth/Auth.vue';
 

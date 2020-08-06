@@ -81,7 +81,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs, onActivated, onDeactivated, watch } from 'vue';
 import electron from 'electron';
 import { throttle, escape, eventBus } from 'js/utils';

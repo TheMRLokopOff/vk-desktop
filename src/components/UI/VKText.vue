@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { h, Fragment, computed, nextTick } from 'vue';
 import electron from 'electron';
 import { unescape, eventBus } from 'js/utils';

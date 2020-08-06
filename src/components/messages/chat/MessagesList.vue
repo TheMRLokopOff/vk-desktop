@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { h, Fragment } from 'vue';
 import { capitalize } from 'js/utils';
 import { getDay } from 'js/date';

@@ -3,7 +3,7 @@
   <AuthConfirm v-else :isModal="isModal" :params="params" @back="onBack" />
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, toRefs } from 'vue';
 
 import AuthForm from './AuthForm.vue';

@@ -54,7 +54,7 @@
   </ContextMenu>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs } from 'vue';
 import electron from 'electron';
 import { eventBus } from 'js/utils';

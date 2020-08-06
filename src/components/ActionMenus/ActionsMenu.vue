@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, toRefs } from 'vue';
 
 import Ripple from '../UI/Ripple.vue';

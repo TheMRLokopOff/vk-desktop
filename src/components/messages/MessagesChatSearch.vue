@@ -54,7 +54,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, toRefs, watch, onMounted, nextTick, computed } from 'vue';
 import { debounce, endScroll, fields, concatProfiles, createQueueManager } from 'js/utils';
 import { parseMessage } from 'js/messages';

@@ -39,7 +39,7 @@ module.exports = function(env, { mode = 'development' } = {}) {
         })
       ]
     },
-    entry: './src/main.js',
+    entry: './src/main.ts',
     output: {
       publicPath: 'http://localhost:8080/dist',
       pathinfo: false
@@ -111,7 +111,7 @@ module.exports = function(env, { mode = 'development' } = {}) {
       })
     ],
     resolve: {
-      extensions: ['.js', '.ts'],
+      extensions: ['.ts'],
       symlinks: false,
       alias: getProjectAliases('webpack')
     }

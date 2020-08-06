@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { h, Fragment } from 'vue';
 import { loadProfile } from 'js/utils';
 import { loadConversationMembers, loadedConversationMembers } from 'js/messages';

@@ -11,7 +11,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 // ForwardedMessage зарегистрирован глобально, чтобы предотвратить рекурсию при рендере
 
 export default {

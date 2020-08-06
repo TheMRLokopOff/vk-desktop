@@ -26,7 +26,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { computed } from 'vue';
 import { openModal, closeModal } from 'js/modals';
 import { usersStorage } from 'js/store/Storage';

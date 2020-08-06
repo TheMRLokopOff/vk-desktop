@@ -30,7 +30,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import CloseModal from './CloseModal.vue';
 import Icon from '../UI/Icon.vue';
 import Ripple from '../UI/Ripple.vue';

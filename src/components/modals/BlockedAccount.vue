@@ -14,7 +14,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import electron from 'electron';
 import { logout } from 'js/utils';
 import { closeModal } from 'js/modals';

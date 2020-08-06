@@ -5,7 +5,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { computed } from 'vue';
 import store from 'js/store';
 

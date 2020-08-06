@@ -8,7 +8,7 @@
   />
 </template>
 
-<script>
+<script lang="ts">
 import { closeModal } from 'js/modals';
 
 import Icon from '../UI/Icon.vue';

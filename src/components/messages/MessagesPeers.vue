@@ -29,7 +29,7 @@
   </Transition>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, toRefs, computed, onMounted, nextTick, watch } from 'vue';
 import { fields, concatProfiles, timer, endScroll } from 'js/utils';
 import { parseConversation, parseMessage } from 'js/messages';

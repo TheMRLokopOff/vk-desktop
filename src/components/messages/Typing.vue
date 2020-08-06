@@ -9,7 +9,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { computed } from 'vue';
 import { loadProfile } from 'js/utils';
 import store from 'js/store';

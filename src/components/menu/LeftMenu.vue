@@ -29,7 +29,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { toRefs } from 'vue';
 import { convertCount } from 'js/utils';
 import { openModal } from 'js/modals';

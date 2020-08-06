@@ -38,7 +38,7 @@
   </Scrolly>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, toRefs } from 'vue';
 import electron from 'electron';
 import sendMessage from 'js/sendMessage';

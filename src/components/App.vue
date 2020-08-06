@@ -14,7 +14,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { reactive, computed, watch } from 'vue';
 import { fields, concatProfiles } from 'js/utils';
 import { addNotificationsTimer, parseMessage, parseConversation } from 'js/messages';
@@ -36,12 +36,12 @@ import SnackbarsWrapper from './SnackbarsWrapper.vue';
 import TooltipsWrapper from './TooltipsWrapper.vue';
 
 // Для разработки / дебага
-window.vkapi = vkapi;
-window.store = store;
-window.router = router;
-window.request = request;
-window.longpoll = longpoll;
-window.auth = auth;
+(window as any).vkapi = vkapi;
+(window as any).store = store;
+(window as any).router = router;
+(window as any).request = request;
+(window as any).longpoll = longpoll;
+(window as any).auth = auth;
 
 export default {
   components: {
