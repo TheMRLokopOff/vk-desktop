@@ -1,10 +1,10 @@
 import { currentWindow } from './utils';
 
-const pressedKeys = new Set();
+const pressedKeys = new Set<string>();
 // Предполагается, что одно и то же сочетание клавиш будет обрабатываться один раз
-const callbacks = new Map();
+const callbacks = new Map<string, () => void>();
 
-function getKeyName({ key, code }) {
+function getKeyName({ key, code }: KeyboardEvent) {
   return code.startsWith('Key') ? code.slice(3) : key;
 }
 
@@ -26,7 +26,7 @@ currentWindow.webContents.on('devtools-opened', () => {
   pressedKeys.clear();
 });
 
-export default function(accelerators, callback) {
+export default function(accelerators: string[], callback: () => void) {
   for (const accelerator of accelerators) {
     callbacks.set(accelerator, callback);
   }

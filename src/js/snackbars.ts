@@ -2,11 +2,20 @@ import { reactive } from 'vue';
 
 let id = 0;
 
-export const snackbarsState = reactive({
+interface SnackbarData {
+  text?: string
+  icon?: string
+}
+
+interface ISnackbarsState {
+  snackbars: ({ id: number } & SnackbarData)[]
+}
+
+export const snackbarsState = reactive<ISnackbarsState>({
   snackbars: []
 });
 
-export function addSnackbar(data) {
+export function addSnackbar(data: SnackbarData) {
   const item = {
     id: id++,
     ...data

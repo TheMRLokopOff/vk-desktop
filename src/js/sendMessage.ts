@@ -1,40 +1,63 @@
 import { nextTick } from 'vue';
 import { random, eventBus } from './utils';
-import vkapi from './vkapi';
+import vkapi, { VkapiError } from './vkapi';
 import store from './store';
+import { VKKeyboard, VKKeyboardButton } from 'types';
+import { MessagesSend, MessagesSendParams } from 'types/methods';
 
 let counter = 0;
 
-function parseInputText(nodes) {
+function parseInputText(nodes: NodeListOf<ChildNode>) {
   let text = '';
 
   for (const node of nodes || []) {
-    if (node.nodeName === '#text') text += node.data.replace(/\n/g, '');
-    else if (node.nodeName === 'BR') text += '\n';
-    else if (node.nodeName === 'IMG') text += node.alt;
-    else text += node.innerText;
+    switch (node.nodeName) {
+      case '#text':
+        text += (node as Text).data.replace(/\n/g, '');
+        break;
+
+      case 'BR':
+        text += '\n';
+        break;
+
+      case 'IMG':
+        text += (node as HTMLImageElement).alt;
+        break;
+
+      default:
+        text += (node as HTMLElement).innerText;
+        break;
+    }
   }
 
   return text.trim().replace(/\n/g, '<br>');
 }
 
-function getMessage(peer_id, msg_id) {
+function getMessage(peer_id: number, msg_id: number) {
   const messages = store.state.messages.messages[peer_id];
   return messages && messages.find((msg) => msg.id === msg_id);
 }
 
+interface SendMessageParams {
+  peer_id: number
+  input?: HTMLInputElement
+  keyboardButton?: Pick<VKKeyboard, 'author_id' | 'one_time'> & Pick<VKKeyboardButton, 'action'>
+  reply_to?: number
+  // TODO VKMessageParsed
+  fwdMessages?: any[]
+}
+
+// TODO переписать полностью
 export default async function sendMessage({
   peer_id, input, keyboardButton, reply_to, fwdMessages = []
-}) {
+}: SendMessageParams) {
   const random_id = random(-2e9, 2e9);
-  let message;
+  let message: string;
 
   if (keyboardButton) {
     const { author_id, action, one_time } = keyboardButton;
     // Почему-то в группах приходит screen_name вместо domain
     const { screen_name } = store.state.profiles[author_id];
-
-    message = peer_id > 2e9 ? `@${screen_name} ${action.label}` : action.label;
 
     if (one_time) {
       store.commit('messages/updateConversation', {
@@ -44,6 +67,8 @@ export default async function sendMessage({
         }
       });
     }
+
+    message = peer_id > 2e9 ? `@${screen_name} ${action.label}` : action.label;
   } else {
     message = parseInputText(input.childNodes);
   }
@@ -58,7 +83,8 @@ export default async function sendMessage({
 
   const msg_id = 'loading' + counter++;
   const payload = keyboardButton && keyboardButton.action.payload;
-  const params = {
+
+  const params: MessagesSendParams = {
     peer_id,
     message,
     random_id
@@ -101,15 +127,17 @@ export default async function sendMessage({
     noSmooth: true
   });
 
-  vkapi('messages.send', params, { android: true }).catch((err) => {
+  vkapi<MessagesSend, MessagesSendParams>('messages.send', params, { android: true }).catch((err: VkapiError) => {
     store.commit('messages/editLoadingMessage', {
       peer_id,
       random_id,
       error: true
     });
 
-    // 900 = Нельзя отправить пользователю из черного списка
-    // 902 = Нельзя отправить сообщение из-за настроек приватности собеседника
+    /**
+     * 900 - Нельзя отправить пользователю из черного списка
+     * 902 - Нельзя отправить сообщение из-за настроек приватности собеседника
+     */
     if ([900, 902].includes(err.error_code)) {
       store.commit('messages/updateConversation', {
         peer: {

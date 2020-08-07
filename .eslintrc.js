@@ -26,6 +26,8 @@ module.exports = {
   extends: [
     // Включает максимальное количество правил
     'plugin:vue/vue3-recommended',
+    // Поддержка TypeScript
+    'plugin:import/typescript',
     'plugin:@typescript-eslint/recommended'
     // 'plugin:@typescript-eslint/recommended-requiring-type-checking'
   ],
@@ -47,7 +49,6 @@ module.exports = {
       null: 'ignore'
     }],
     'for-direction': 'error',
-    'func-call-spacing': 'error',
     'func-style': ['error', 'declaration', {
       allowArrowFunctions: true
     }],
@@ -243,6 +244,7 @@ module.exports = {
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/func-call-spacing': 'error',
 
     // Включаем правила, которые не указаны в рекомендуемых
     'vue/component-name-in-template-casing': 'error',

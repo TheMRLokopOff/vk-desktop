@@ -6,7 +6,9 @@ import { usersStorage } from './store/Storage';
 import vkapi from './vkapi';
 import store from './store';
 import copyObject from './copyObject';
-import { ExecuteGetProfiles, ExecuteGetProfilesParams, IAccount, VKGroup, VKImageSize, VKUser } from 'types';
+import { VKGroup, VKImageSize, VKUser } from 'types';
+import { ExecuteGetProfiles, ExecuteGetProfilesParams } from 'types/methods';
+import { IAccount } from 'types/internal';
 
 // --- Переменные
 
@@ -19,6 +21,7 @@ export const fields = 'photo_50,photo_100,verified,sex,status,first_name_acc,las
 
 export const eventBus = new EventEmitter();
 
+// TODO types
 export const currentWindow: any = electron.remote.getCurrentWindow();
 
 // --- Основные утилиты

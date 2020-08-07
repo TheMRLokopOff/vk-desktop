@@ -1,7 +1,7 @@
 import electron from 'electron';
 import { VKDesktopUserAgent, AndroidUserAgent, toUrlParams } from './utils';
 import { openModal } from './modals';
-import { IAccount } from 'types';
+import { IAccount } from 'types/internal';
 import store from './store';
 import request from './request';
 
@@ -152,26 +152,26 @@ addErrorHandler(17, async ({ data, resolve, reject }) => {
   }
 });
 
+export interface VkapiError {
+  error_code: number
+  error_msg: string
+  request_params?: { key: string, value: string }[]
+
+  /**
+   * Error 14, captcha
+   */
+  captcha_sid?: string
+  captcha_img?: string
+
+  /**
+   * Error 17, (phone) validation required
+   */
+  redirect_uri?: string
+}
+
 interface VkapiRequestResult<MethodResult> {
   response: MethodResult
-
-  error?: {
-    error_code: number
-    error_msg: string
-    request_params?: { key: string, value: string }[]
-
-    /**
-     * Error 14, captcha
-     */
-    captcha_sid?: string
-    captcha_img?: string
-
-    /**
-     * Error 17, (phone) validation required
-     */
-    redirect_uri?: string
-  }
-
+  error?: VkapiError
   execute_errors?: Omit<VkapiRequestResult<MethodResult>['error'], 'request_params'> & { method: 'string' }
 }
 
