@@ -1,9 +1,13 @@
 import store from './store';
 
-// Возвращает индекс массива, который соответствует склонению падежа числительных
-// Пример массива: ['рубль', 'рубля', 'рублей']
-// Пример ответов: fn(1) = 0; fn(2) = 1; fn(5) = 2;
-function caseOfNumber(count) {
+/**
+ * Возвращает индекс массива, который соответствует склонению падежа числительных
+ *
+ * Пример массива: ['рубль', 'рубля', 'рублей']
+ *
+ * Пример ответов: fn(1) = 0; fn(2) = 1; fn(5) = 2;
+ */
+function caseOfNumber(count: number) {
   const lastDigits = Math.abs(count) % 100;
   const lastDigit = lastDigits % 10;
 
@@ -40,9 +44,21 @@ function caseOfNumber(count) {
 // 9) fn('caseOfNumber', [5], 5): '5 яблок'
 // 10) fn('object', 'b', ['тест']): 'б тест'
 // 11) fn('objectAndArray', 'apple', [3], 3): '3 яблока'
-export default function(name, key, replaces, number) {
+
+// fn(name, key?, replaces?, number?)
+// fn(name, replaces, number?)
+
+type Key = number | string | boolean;
+type Replaces = (number | string)[];
+
+export default function(
+  name: string,
+  key?: Key | Replaces,
+  replaces?: Replaces | number,
+  number?: number
+): string {
   if (Array.isArray(key)) {
-    number = replaces;
+    number = replaces as number;
     replaces = key;
     key = null;
   }
@@ -50,9 +66,9 @@ export default function(name, key, replaces, number) {
   let data = store.getters['settings/lang'][name];
 
   if (typeof key === 'boolean') key = key ? 1 : 0;
-  if (key != null) data = data[key];
+  if (key != null) data = data[key as (number | string)];
   if (number != null && data) data = data[caseOfNumber(number)];
-  if (!data) return data;
+  if (!data) return;
 
   if (Array.isArray(replaces)) {
     for (let i = 0; i < replaces.length; i++) {

@@ -6,9 +6,8 @@ import { usersStorage } from './store/Storage';
 import vkapi from './vkapi';
 import store from './store';
 import copyObject from './copyObject';
-import { VKGroup, VKImageSize, VKUser } from 'types';
+import { VKConversation, VKGroup, VKImageSize, VKProfile, VKUser } from 'types';
 import { ExecuteGetProfiles, ExecuteGetProfilesParams } from 'types/methods';
-import { IAccount } from 'types/internal';
 
 // --- Переменные
 
@@ -165,12 +164,12 @@ export function convertCount(count: number) {
   return '' + count;
 }
 
-export function getPhoto(user: IAccount | null) {
-  return user && (devicePixelRatio > 1 ? user.photo_100 : user.photo_50);
+export function getPhoto(obj: VKProfile | VKConversation['chat_settings']['photo'] | null) {
+  return obj && (devicePixelRatio > 1 ? obj.photo_100 : obj.photo_50);
 }
 
 // Возвращает фотографию нужного размера из объекта фотографий
-export function getPhotoFromSizes(sizes: VKImageSize[], size: string | string[], isDoc: boolean) {
+export function getPhotoFromSizes(sizes: VKImageSize[], size: string | string[], isDoc?: boolean) {
   const find = (type: string) => sizes.find((photo) => photo.type === type);
   const optionalTypes = isDoc ? ['z', 'y', 'x', 'm', 's'] : ['w', 'z', 'y'];
 

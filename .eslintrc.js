@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   root: true,
 
@@ -106,7 +108,7 @@ module.exports = {
     }],
     'no-multi-str': 'error',
     'no-multiple-empty-lines': ['error', {
-      max: 1
+      max: 2
     }],
     'no-new-object': 'error',
     'no-new-symbol': 'error',
@@ -267,7 +269,6 @@ module.exports = {
     'vue/no-useless-mustaches': 'error',
     'vue/no-useless-v-bind': 'error',
     'vue/padding-line-between-blocks': 'error',
-    'vue/require-direct-export': 'error',
     'vue/v-for-delimiter-style': ['error', 'of'],
 
     // Включаем правила, идентичные eslint-base, но которые направлены на выражения в template

@@ -15,14 +15,14 @@
 </template>
 
 <script lang="ts">
-import { reactive, computed, toRefs } from 'vue';
+import { defineComponent, reactive, computed, toRefs } from 'vue';
 import { eventBus } from 'js/utils';
 import store from 'js/store';
 import router from 'js/router';
 
 import MessagesPeers from './MessagesPeers.vue';
 
-export default {
+export default defineComponent({
   components: {
     MessagesPeers
   },
@@ -63,7 +63,7 @@ export default {
       closeChat
     };
   }
-};
+});
 </script>
 
 <style>

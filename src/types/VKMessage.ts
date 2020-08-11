@@ -1,4 +1,4 @@
-import { VKImage, VKKeyboardButton, VKKeyboardInline } from '.';
+import { VKImage, VKKeyboardButton, VKInlineKeyboard } from '.';
 import { VKAttachment, VKAttachmentGeo } from './attachments';
 
 interface VKMessageTemplateElement {
@@ -11,13 +11,13 @@ interface VKMessageTemplateElement {
   buttons: VKKeyboardButton[]
 }
 
-interface VKMessageTemplate {
+export interface VKMessageTemplate {
   type: 'carousel'
   elements: VKMessageTemplateElement[]
 }
 
 // chat_id со всеми сервисными сообщениями для тестов: 541
-interface MessageAction {
+export interface VKMessageAction {
   type:
     | 'chat_create' | 'chat_photo_update' | 'chat_photo_remove' | 'chat_title_update' | 'chat_pin_message'
     | 'chat_unpin_message' | 'chat_invite_user' | 'chat_invite_user_by_link' | 'chat_kick_user' | 'chat_screenshot'
@@ -44,6 +44,9 @@ export interface VKMessage {
   from_id: number
   /**
    * ???
+   *
+   * Приходит и в messages.getById, и в messages.getHistory
+   * (но не приходит, видимо, для пересланных сообщений)
    */
   peer_id?: number
   /**
@@ -58,14 +61,14 @@ export interface VKMessage {
    */
   random_id?: number
   geo?: VKAttachmentGeo
-  action?: MessageAction
+  action?: VKMessageAction
   /**
    * ???
    */
   fwd_messages?: VKMessage[]
   attachments: VKAttachment[]
   reply_message?: VKMessage
-  keyboard?: VKKeyboardInline
+  keyboard?: VKInlineKeyboard
   template?: VKMessageTemplate
   /**
    * ???

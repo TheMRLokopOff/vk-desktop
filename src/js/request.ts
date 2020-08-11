@@ -2,8 +2,6 @@ import { promises as dns } from 'dns';
 import https from 'https';
 import { timer, isObject } from './utils';
 
-type RequestParams = string | https.RequestOptions;
-
 interface RequestOptions {
   raw?: boolean
   timeout?: number

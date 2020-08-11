@@ -1,11 +1,20 @@
 import { escape, getPhoto, fields, concatProfiles, capitalize, getAppName } from './utils';
 import { openModal } from 'js/modals';
 import { getLastOnlineDate } from './date';
-import vkapi from './vkapi';
+import { VKConversation, VKMessage, VKUser, VKProfile } from 'types';
+import { IParsedConversation, IParsedMessage } from 'types/internal';
+import {
+  ExecuteInit,
+  MessagesDelete,
+  MessagesDeleteParams, MessagesGetConversationMembers, MessagesGetConversationMembersParams,
+  MessagesGetConversationsById,
+  MessagesGetConversationsByIdParams
+} from '../types/methods';
+import vkapi, { VkapiError } from './vkapi';
 import store from './store';
 import getTranslate from './getTranslate';
 
-export function parseConversation(conversation) {
+export function parseConversation(conversation: VKConversation): IParsedConversation {
   const isChat = conversation.peer.id > 2e9;
   const { push_settings, chat_settings } = conversation;
   const isCasperChat = isChat && !!chat_settings.is_disappearing;
@@ -42,7 +51,7 @@ export function parseConversation(conversation) {
   };
 }
 
-export function parseMessage(message) {
+export function parseMessage(message: VKMessage): IParsedMessage {
   if (message.geo) {
     message.attachments.push({
       type: 'geo',
@@ -88,6 +97,7 @@ export function parseMessage(message) {
     out: message.from_id === store.state.users.activeUser,
     text: escape(message.text).replace(/\n/g, '<br>'),
     date: message.date,
+    peer_id: message.peer_id,
     conversation_msg_id: message.conversation_message_id,
     random_id: message.random_id,
     action: message.action,
@@ -109,7 +119,8 @@ export function parseMessage(message) {
   };
 }
 
-export function getMessagePreview(msg) {
+// TODO проверить работоспособность без проверки на hasAttachment
+export function getMessagePreview(msg: IParsedMessage) {
   if (msg.text) {
     return msg.text;
   } else if (msg.hasAttachment) {
@@ -140,7 +151,11 @@ export function getMessagePreview(msg) {
   }
 }
 
-export function getPeerOnline(peer_id, peer, owner) {
+export function getPeerOnline(
+  peer_id: number,
+  peer: IParsedConversation | null,
+  owner: VKProfile | null
+) {
   if (!peer || !peer.left && peer_id > 2e9 && peer.members == null) {
     return getTranslate('loading');
   }
@@ -169,7 +184,7 @@ export function getPeerOnline(peer_id, peer, owner) {
     return getTranslate('im_user_deleted');
   }
 
-  const { online, online_mobile, online_app, online_info, last_seen, sex } = owner;
+  const { online, online_mobile, online_app, online_info, last_seen, sex } = owner as VKUser;
 
   if (online) {
     const appName = online_app > 0 && getAppName(online_app);
@@ -195,7 +210,11 @@ export function getPeerOnline(peer_id, peer, owner) {
   return '';
 }
 
-export function getPeerAvatar(peer_id, peer, owner) {
+export function getPeerAvatar(
+  peer_id: number,
+  peer: IParsedConversation | null,
+  owner: VKProfile | null
+) {
   if (peer_id > 2e9) {
     return peer && !peer.left && peer.photo || 'assets/im_chat_photo.png';
   } else {
@@ -203,27 +222,41 @@ export function getPeerAvatar(peer_id, peer, owner) {
   }
 }
 
-export function getPeerTitle(peer_id, peer, owner) {
+export function getPeerTitle(
+  peer_id: number,
+  peer: IParsedConversation | null,
+  owner: VKProfile | null
+) {
   if (peer_id > 2e9) {
     return peer && peer.title || '...';
   } else if (owner) {
-    return owner.name || `${owner.first_name} ${owner.last_name}`;
+    return 'name' in owner
+      ? owner.name
+      : `${owner.first_name} ${owner.last_name}`;
   }
 
   return '...';
 }
 
-export function getLastMsgId() {
+// TODO перепроверить после типизации store
+export function getLastMsgId(): number | null {
   const [peer] = store.getters['messages/peersList'];
   return peer ? peer.msg.id : null;
 }
 
-export function getMessageById(msg_id, peer_id) {
+// TODO в каких случаях msg_id == 0 или null?
+// TODO перепроверить после типизации store
+export function getMessageById(msg_id: number, peer_id: number): IParsedMessage {
   return msg_id && store.state.messages.messages[peer_id].find((msg) => msg.id === msg_id);
 }
 
-export function deleteMessages(message_ids, peer, needCancelSelect) {
-  const activeUserId = store.state.users.activeUser;
+export function deleteMessages(
+  message_ids: number[],
+  peer: IParsedConversation,
+  needCancelSelect?: true
+) {
+  // TODO store
+  const activeUserId: number = store.state.users.activeUser;
   const DAY = 1000 * 60 * 60 * 24;
 
   const canDeleteForAll = (
@@ -244,8 +277,8 @@ export function deleteMessages(message_ids, peer, needCancelSelect) {
     count: message_ids.length,
     canDeleteForAll,
 
-    submit(deleteForAll) {
-      vkapi('messages.delete', {
+    submit(deleteForAll: boolean) {
+      vkapi<MessagesDelete, MessagesDeleteParams>('messages.delete', {
         message_ids: message_ids.join(','),
         delete_for_all: deleteForAll ? 1 : 0
       });
@@ -257,8 +290,11 @@ export function deleteMessages(message_ids, peer, needCancelSelect) {
   });
 }
 
-export async function loadConversation(id) {
-  const { items: [conversation], profiles, groups } = await vkapi('messages.getConversationsById', {
+export async function loadConversation(id: number) {
+  const { items: [conversation], profiles, groups } = await vkapi<
+    MessagesGetConversationsById,
+    MessagesGetConversationsByIdParams
+  >('messages.getConversationsById', {
     peer_ids: id,
     extended: 1,
     fields
@@ -270,9 +306,9 @@ export async function loadConversation(id) {
   });
 }
 
-export const loadedConversationMembers = new Set();
+export const loadedConversationMembers = new Set<number>();
 
-export async function loadConversationMembers(id, force) {
+export async function loadConversationMembers(id: number, force?: boolean) {
   if (loadedConversationMembers.has(id) && !force) {
     return;
   }
@@ -280,13 +316,18 @@ export async function loadConversationMembers(id, force) {
   loadedConversationMembers.add(id);
 
   try {
-    const { profiles, groups } = await vkapi('messages.getConversationMembers', {
+    const { profiles, groups } = await vkapi<
+      MessagesGetConversationMembers,
+      MessagesGetConversationMembersParams
+    >('messages.getConversationMembers', {
       peer_id: id,
       fields
     });
 
     store.commit('addProfiles', concatProfiles(profiles, groups));
-  } catch (err) {
+  } catch (_err) {
+    const err = _err as VkapiError;
+
     // Пользователь исключен/вышел из беседы, но т.к. юзер может вернуться,
     // здесь удаляется пометка беседы как загруженная для возможности повторить попытку
     if (err.error_code === 917) {
@@ -297,9 +338,12 @@ export async function loadConversationMembers(id, force) {
   }
 }
 
-const activeNotificationsTimers = new Map();
+const activeNotificationsTimers = new Map<number, NodeJS.Timeout>();
 
-export function addNotificationsTimer({ peer_id, disabled_until }, remove) {
+export function addNotificationsTimer(
+  { peer_id, disabled_until }: ExecuteInit['temporarilyDisabledNotifications'][0],
+  remove?: boolean
+) {
   if (activeNotificationsTimers.has(peer_id)) {
     clearTimeout(activeNotificationsTimers.get(peer_id));
   }

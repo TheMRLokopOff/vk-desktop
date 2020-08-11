@@ -1,3 +1,12 @@
+export interface VKKeyboard {
+  author_id: number
+  one_time: boolean
+  inline?: true
+  buttons?: VKKeyboardButton[][]
+}
+
+export type VKInlineKeyboard = VKKeyboard & { inline: true };
+
 // TODO описать новый тип кнопок
 // TODO описание кнопок в комментариях
 export interface VKKeyboardButton {
@@ -14,12 +23,3 @@ export interface VKKeyboardButton {
     payload: string
   }
 }
-
-export interface VKKeyboard {
-  author_id: number
-  one_time: boolean
-  inline?: true
-  buttons?: VKKeyboardButton[][]
-}
-
-export type VKKeyboardInline = VKKeyboard & { inline: true };

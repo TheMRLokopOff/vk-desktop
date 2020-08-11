@@ -4,32 +4,64 @@ import vkapi from './vkapi';
 import store from './store';
 import request from './request';
 import longpollEvents from './longpollEvents';
+import { IParsedConversation, IParsedMessage } from 'types/internal';
+import {
+  MessagesGetLongPollHistory,
+  MessagesGetLongPollHistoryParams,
+  MessagesGetLongPollServer,
+  MessagesGetLongPollServerParams
+} from 'types/methods';
+
+// TODO
+interface LongPollResult {
+  /**
+   * Когда не приходит?
+   */
+  ts?: number
+  /**
+   * Когда не приходит?
+   */
+  pts?: number
+  updates: any[]
+  /**
+   * Что означает каждая ошибка?
+   */
+  failed?: 1 | 2 | 3 | 4
+}
 
 class Longpoll {
+  public version: number
+  public debug: boolean
+
+  private server: string
+  private key: string
+  private ts: number
+  private pts: number
+
   constructor() {
-    this.debug = false;
     this.version = 10;
+    this.debug = false;
   }
 
   getServer() {
-    return vkapi('messages.getLongPollServer', {
+    return vkapi<MessagesGetLongPollServer, MessagesGetLongPollServerParams>('messages.getLongPollServer', {
       lp_version: this.version,
       need_pts: 1
     });
   }
 
-  start(data) {
+  start(data: MessagesGetLongPollServer) {
     this.server = data.server;
     this.key = data.key;
-    this.pts = data.pts;
     this.ts = data.ts;
+    this.pts = data.pts;
 
     this.loop();
   }
 
   async loop() {
     while (true) {
-      const { data } = await request(`https://${this.server}?` + toUrlParams({
+      const { data } = await request<LongPollResult>(`https://${this.server}?` + toUrlParams({
         act: 'a_check',
         key: this.key,
         ts: this.ts,
@@ -74,7 +106,10 @@ class Longpoll {
   }
 
   async getHistory() {
-    const history = await vkapi('messages.getLongPollHistory', {
+    const history = await vkapi<
+      MessagesGetLongPollHistory,
+      MessagesGetLongPollHistoryParams
+    >('messages.getLongPollHistory', {
       ts: this.ts,
       pts: this.pts,
       msgs_limit: 500,
@@ -86,15 +121,19 @@ class Longpoll {
     store.commit('addProfiles', concatProfiles(history.profiles, history.groups));
     this.pts = history.new_pts;
 
-    const peers = history.conversations.reduce((conversations, conversation) => {
-      conversations[conversation.peer.id] = parseConversation(conversation);
-      return conversations;
-    }, {});
+    const peers: Record<number, IParsedConversation> = history.conversations.reduce(
+      (conversations, conversation) => {
+        conversations[conversation.peer.id] = parseConversation(conversation);
+        return conversations;
+      }, {}
+    );
 
-    const messages = history.messages.items.reduce((messages, message) => {
-      messages[message.id] = parseMessage(message);
-      return messages;
-    }, {});
+    const messages: Record<number, IParsedMessage> = history.messages.items.reduce(
+      (messages, message) => {
+        messages[message.id] = parseMessage(message);
+        return messages;
+      }, {}
+    );
 
     const events = [];
 

@@ -1,3 +1,9 @@
+import { VKUser } from './VKUser';
+import { VKGroup } from './VKGroup';
+
+export type VKProfile = VKUser | VKGroup;
+
+export * from './VKConversation';
 export * from './VKGroup';
 export * from './VKImage';
 export * from './VKKeyboard';

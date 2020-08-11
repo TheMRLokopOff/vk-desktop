@@ -1,3 +1,13 @@
+export interface VKImage {
+  id: number
+  album_id: number
+  owner_id: number
+  date: number
+  user_id: number
+  text: string
+  sizes: VKImageSize[]
+}
+
 export interface VKImageSize {
   /**
    * Описаны только типы, которые есть в документации.
@@ -36,14 +46,4 @@ export interface VKImageSize {
    * Если фотография была загружена до 2012 года, то может вернуться значение 0
    */
   height: number
-}
-
-export interface VKImage {
-  id: number
-  album_id: number
-  owner_id: number
-  date: number
-  user_id: number
-  text: string
-  sizes: VKImageSize[]
 }

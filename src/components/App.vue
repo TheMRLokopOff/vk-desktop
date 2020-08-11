@@ -15,9 +15,10 @@
 </template>
 
 <script lang="ts">
-import { reactive, computed, watch } from 'vue';
+import { defineComponent, reactive, computed, watch } from 'vue';
 import { fields, concatProfiles } from 'js/utils';
 import { addNotificationsTimer, parseMessage, parseConversation } from 'js/messages';
+import { ExecuteInit, ExecuteInitParams } from 'types/methods';
 import vkapi from 'js/vkapi';
 import store from 'js/store';
 import router from 'js/router';
@@ -35,7 +36,7 @@ import ContextMenuWrapper from './ContextMenus/ContextMenuWrapper.vue';
 import SnackbarsWrapper from './SnackbarsWrapper.vue';
 import TooltipsWrapper from './TooltipsWrapper.vue';
 
-// Для разработки / дебага
+// Для разработки и отлова ошибок
 (window as any).vkapi = vkapi;
 (window as any).store = store;
 (window as any).router = router;
@@ -43,7 +44,7 @@ import TooltipsWrapper from './TooltipsWrapper.vue';
 (window as any).longpoll = longpoll;
 (window as any).auth = auth;
 
-export default {
+export default defineComponent({
   components: {
     Titlebar,
     LeftMenu,
@@ -75,7 +76,7 @@ export default {
         lp,
         temporarilyDisabledNotifications,
         firstConversations
-      } = await vkapi('execute.init', {
+      } = await vkapi<ExecuteInit, ExecuteInitParams>('execute.init', {
         lp_version: longpoll.version,
         fields
       });
@@ -110,5 +111,5 @@ export default {
 
     return state;
   }
-};
+});
 </script>
