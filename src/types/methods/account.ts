@@ -1,26 +1,14 @@
+import { VKConversationPushSettings } from '..';
+
 export interface AccountGetPushSettings {
   disabled: 1
   conversations: {
     count: number
-    items: {
-      /**
-       * ID диалога
-       */
-      peer_id: number
-      /**
-       * Время в unixtime, когда уведомления будут включены
-       *
-       * Если вернулось значение -1, то уведомления либо включены,
-       * либо выключены на неограниченный срок.
-       */
-      disabled_until: number
-      /**
-       * Неизвестное значение, которое стоит игнорировать
-       */
-      sound: 0 | 1
-    }[]
+    items: VKConversationPushSettings[]
   }
 }
+
+/** ********************************************************************************************* */
 
 export interface AccountGetCounters {
   /**

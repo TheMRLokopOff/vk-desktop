@@ -188,7 +188,9 @@ class Longpoll {
 
       const fromHistory = rawEvent[1] === 'fromHistory';
       const rawData = fromHistory ? rawEvent[0] : rawEvent;
-      const data = event.parser ? event.parser(rawData, fromHistory) : rawData;
+      const data = event.parser && !fromHistory
+        ? event.parser(rawData)
+        : rawData;
 
       if (!data) {
         continue;

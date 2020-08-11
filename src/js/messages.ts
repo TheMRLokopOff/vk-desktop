@@ -1,10 +1,9 @@
 import { escape, getPhoto, fields, concatProfiles, capitalize, getAppName } from './utils';
 import { openModal } from 'js/modals';
 import { getLastOnlineDate } from './date';
-import { VKConversation, VKMessage, VKUser, VKProfile } from 'types';
+import { VKConversation, VKMessage, VKUser, VKProfile, VKConversationPushSettings } from 'types';
 import { IParsedConversation, IParsedMessage } from 'types/internal';
 import {
-  ExecuteInit,
   MessagesDelete,
   MessagesDeleteParams, MessagesGetConversationMembers, MessagesGetConversationMembersParams,
   MessagesGetConversationsById,
@@ -108,6 +107,7 @@ export function parseMessage(message: VKMessage): IParsedMessage {
     hasReplyMsg,
     replyMsg: hasReplyMsg ? parseMessage(message.reply_message) : null,
     keyboard: message.keyboard,
+    hasTemplate: !!message.template,
     template: message.template,
     hidden: !!message.is_hidden,
     editTime: message.update_time || 0,
@@ -341,7 +341,7 @@ export async function loadConversationMembers(id: number, force?: boolean) {
 const activeNotificationsTimers = new Map<number, NodeJS.Timeout>();
 
 export function addNotificationsTimer(
-  { peer_id, disabled_until }: ExecuteInit['temporarilyDisabledNotifications'][0],
+  { peer_id, disabled_until }: Omit<VKConversationPushSettings, 'sound'>,
   remove?: boolean
 ) {
   if (activeNotificationsTimers.has(peer_id)) {

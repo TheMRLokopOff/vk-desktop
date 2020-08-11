@@ -18,6 +18,7 @@ function caseOfNumber(count: number) {
   return 2;
 }
 
+// TODO перенести в тесты
 // name<string>: название перевода
 // key?<string|number|boolean>: ключ перевода
 // replaces?<array>: массив данных, которые вставляются в тексте вместо {index}
@@ -45,12 +46,15 @@ function caseOfNumber(count: number) {
 // 10) fn('object', 'b', ['тест']): 'б тест'
 // 11) fn('objectAndArray', 'apple', [3], 3): '3 яблока'
 
-// fn(name, key?, replaces?, number?)
-// fn(name, replaces, number?)
-
 type Key = number | string | boolean;
 type Replaces = (number | string)[];
 
+/**
+ * Возвращает перевод.
+ *
+ * 1. fn(name, key?, replaces?, number?)
+ * 2. fn(name, replaces, number?)
+ */
 export default function(
   name: string,
   key?: Key | Replaces,

@@ -35,6 +35,7 @@ export interface MessagesSendParams {
   // silent
 }
 
+/** ********************************************************************************************* */
 
 export type MessagesDelete = 1;
 
@@ -45,6 +46,7 @@ export interface MessagesDeleteParams {
   delete_for_all?: 0 | 1
 }
 
+/** ********************************************************************************************* */
 
 export interface MessagesGetConversationsById {
   count: number
@@ -59,6 +61,7 @@ export interface MessagesGetConversationsByIdParams {
   fields?: string
 }
 
+/** ********************************************************************************************* */
 
 export interface MessagesGetConversationMembers {
   count: number
@@ -101,6 +104,7 @@ export interface MessagesGetConversationMembersParams {
   fields?: string
 }
 
+/** ********************************************************************************************* */
 
 export interface MessagesGetLongPollServer {
   server: string
@@ -127,6 +131,7 @@ export interface MessagesGetLongPollServerParams {
   need_pts?: 0 | 1
 }
 
+/** ********************************************************************************************* */
 
 export interface MessagesGetLongPollHistory {
   history: any[]
@@ -216,4 +221,25 @@ export interface MessagesGetLongPollHistoryParams {
    * По умолчанию 0.
    */
   credentials?: 0 | 1
+}
+
+/** ********************************************************************************************* */
+
+export interface MessagesGetById {
+  count: number
+  items: VKMessage[]
+  /**
+   * Приходит только при extended: 1 и при наличии самих профилей
+   */
+  profiles?: VKUser[]
+  /**
+   * Приходит только при extended: 1 и при наличии самих сообществ
+   */
+  groups?: VKGroup[]
+}
+
+export interface MessagesGetByIdParams {
+  message_ids: number | string
+  extended?: 0 | 1
+  fields?: string
 }

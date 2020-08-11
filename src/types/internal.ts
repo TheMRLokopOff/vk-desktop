@@ -28,6 +28,7 @@ export interface IParsedMessage {
   hasReplyMsg: boolean
   replyMsg: IParsedMessage | null
   keyboard: VKInlineKeyboard | null
+  hasTemplate: boolean
   template: VKMessageTemplate | null
   hidden: boolean
   editTime: number

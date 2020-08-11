@@ -12,31 +12,139 @@ import {
 import vkapi from './vkapi';
 import store from './store';
 import router from './router';
+import { VKConversationPushSettings, VKInlineKeyboard, VKKeyboard, VKMessageAction } from 'types';
+import { IAccount, IParsedConversation, IParsedMessage } from 'types/internal';
+import {
+  ExecuteGetLastMessage,
+  ExecuteGetLastMessageParams,
+  MessagesGetById,
+  MessagesGetByIdParams
+} from 'types/methods';
 
-function hasFlag(mask) {
-  const flags = {
-    unread:         1,       // Непрочитанное сообщение
-    outbox:         1 << 1,  // Исходящее сообщение
-    important:      1 << 3,  // Важное сообщение
-    chat:           1 << 4,  // Отправка сообщения в беседу через vk.com
-    friends:        1 << 5,  // Исходящее; входящее от друга в лс
-    spam:           1 << 6,  // Пометка сообщения как спам
-    deleted:        1 << 7,  // Удаление сообщения локально
-    audio_listened: 1 << 12, // Прослушано голосовое сообщение
-    chat2:          1 << 13, // Отправка в беседу через клиенты
-    cancel_spam:    1 << 15, // Отмена пометки как спам
-    hidden:         1 << 16, // Приветственное сообщение от группы
-    deleted_all:    1 << 17, // Удаление сообщения для всех
-    chat_in:        1 << 19, // Входящее сообщение в беседе
-    silent:         1 << 20, // messages.send silent: true; выход из беседы
-    reply_msg:      1 << 21  // Ответ на сообщение
-  };
-
-  return (flag) => !!(flags[flag] & mask);
+interface LongPollMessageAction {
+  source_act?: VKMessageAction['type']
+  // chat_create, chat_title_update
+  source_text?: string
+  // chat_title_update
+  source_old_text?: string
+  // chat_pin_message
+  source_message?: string
+  // chat_pin_message, chat_unpin_message, chat_invite_user, chat_kick_user, chat_screenshot
+  source_mid?: string
+  // chat_pin_message, chat_unpin_message
+  source_chat_local_id?: string
+  // chat_title_update, может быть что-нибудь еще
+  source_is_channel?: '1'
 }
 
-function getServiceMessage(data) {
-  const source = {};
+type LongPollMessage = [
+  number, // msg_id
+  number, // flags
+  number, // peer_id
+  number, // timestamp
+  string, // text
+  {
+    /**
+     * TODO я уверен в этом?
+     * Приходит только в лс | в каналах.
+     */
+    title?: ' ... ' | ''
+    /**
+     * Приходит только при наличии эмодзи в тексте.
+     */
+    emoji?: '1'
+    /**
+     * ID автора сообщения.
+     *
+     * Приходит только в беседах.
+     */
+    from?: string
+    /**
+     * TODO актуализировать информацию !!!
+     *
+     * Наличие шаблона (для получения шаблона нужно получить сообщение из API)
+     */
+    has_template?: '1'
+    /**
+     * 1: Список упомянутых людей прямо или через @online; Ответ на сообщение от [user_id]; @all
+     * 2: Исчезающее сообщение в обычном чате
+     */
+    marked_users?: [
+      | [1, number[] | 'all']
+      | [2, 'all']
+    ]
+    keyboard?: VKKeyboard | VKInlineKeyboard
+    /**
+     * Сообщение исчезло, приходит в 18 событии
+     */
+    is_expired?: '1'
+    /**
+     * TODO
+     */
+    ttl?: any
+    /**
+     * TODO
+     */
+    expire_ttl?: any
+  } & LongPollMessageAction,
+  {
+    // Есть пересланное сообщение или ответ на сообщение
+    fwd?: '0_0'
+    // Есть ответ на сообщение; "{"conversation_message_id":NUMBER}"
+    reply?: string
+
+    // Видимо только началась разработка выдачи вложений прямо в LongPoll,
+    // поэтому эти поля приходят пока что только для стикеров
+    // Число в строке
+    attachments_count?: string
+    // JSON с массивом вложений
+    attachments?: string
+    // Описание вложений вида { attach1_type, attach1, ... }
+  } & Record<string, string>,
+  number, // random_id
+  number, // conversation_message_id
+  number // edit_time, 0 (не редактировалось) или timestamp (время редактирования)
+];
+
+function hasFlag(mask: number) {
+  const flags = {
+    // Непрочитанное сообщение
+    unread: 1,
+    // Исходящее сообщение
+    outbox: 1 << 1,
+    // Важное сообщение
+    important: 1 << 3,
+    // Отправка сообщения в беседу через vk.com
+    chat: 1 << 4,
+    // Исходящее; входящее от друга в лс
+    friends: 1 << 5,
+    // Пометка сообщения как спам
+    spam: 1 << 6,
+    // Удаление сообщения локально
+    deleted: 1 << 7,
+    // Прослушано голосовое сообщение
+    audio_listened: 1 << 12,
+    // Отправка в беседу через клиенты
+    chat2: 1 << 13,
+    // Отмена пометки как спам
+    cancel_spam: 1 << 15,
+    // Приветственное сообщение от группы
+    hidden: 1 << 16,
+    // Удаление сообщения для всех
+    deleted_all: 1 << 17,
+    // Входящее сообщение в беседе
+    chat_in: 1 << 19,
+    // messages.send silent: true; выход из беседы
+    silent: 1 << 20,
+    // Ответ на сообщение
+    reply_msg: 1 << 21
+  };
+
+  return (flag: string) => !!(flags[flag] & mask);
+}
+
+function getServiceMessage(data: LongPollMessage[5]): VKMessageAction | null {
+  const source = {} as VKMessageAction;
 
   const replaces = {
     act: 'type',
@@ -61,8 +169,8 @@ function getServiceMessage(data) {
     : null;
 }
 
-function getAttachments(data) {
-  const attachments = {};
+function getAttachments(data: LongPollMessage[6]) {
+  const attachments: Record<string, null[]> = {};
 
   if (data.geo) {
     attachments.geo = [null];
@@ -91,19 +199,20 @@ function getAttachments(data) {
   return attachments;
 }
 
-// https://github.com/danyadev/longpoll-doc#структура-сообщения
-function parseLongPollMessage(data, fromHistory) {
-  // Если данные получены через messages.getLongPollHistory
-  if (fromHistory) {
-    return data;
-  }
+interface ParseLongPollMessageResult {
+  peer: Partial<IParsedConversation>
+  msg: IParsedMessage
+}
 
+// https://github.com/danyadev/longpoll-doc#структура-сообщения
+function parseLongPollMessage(data: LongPollMessage): ParseLongPollMessageResult {
   // Если это 2 событие прочтения сообщения или пометки его важным
   if (!data[3]) {
     return;
   }
 
-  const user = store.getters['users/user'];
+  // TODO store
+  const user: IAccount = store.getters['users/user'];
   const flag = hasFlag(data[1]);
   const action = getServiceMessage(data[5]);
   const from_id = flag('outbox') ? user.id : +(data[5].from || data[2]);
@@ -112,7 +221,7 @@ function parseLongPollMessage(data, fromHistory) {
   const hasReplyMsg = flag('reply_msg');
   const hasAttachment = !!(hasReplyMsg || data[6].fwd || Object.keys(attachments).length);
   const out = from_id === user.id;
-  let mentions = [];
+  let mentions: number[] = [];
 
   if (keyboard) {
     keyboard.author_id = from_id;
@@ -135,7 +244,7 @@ function parseLongPollMessage(data, fromHistory) {
         // Сообщение с некоторым сервисным сообщением
         !!data[5].source_is_channel,
       isCasperChat: !!data[5].ttl,
-      keyboard: keyboard && !keyboard.inline && keyboard,
+      keyboard: keyboard && !('inline' in keyboard) && keyboard,
       mentions
     },
     msg: {
@@ -144,6 +253,7 @@ function parseLongPollMessage(data, fromHistory) {
       out: from_id === user.id || flag('outbox'),
       text: action ? '' : data[4],
       date: data[3],
+      peer_id: data[2],
       conversation_msg_id: data[8],
       random_id: data[7],
       action,
@@ -153,7 +263,8 @@ function parseLongPollMessage(data, fromHistory) {
       attachments,
       hasReplyMsg,
       replyMsg: null,
-      keyboard: keyboard && keyboard.inline ? keyboard : null,
+      keyboard: keyboard && ('inline' in keyboard) ? keyboard : null,
+      hasTemplate: !!data[5].has_template,
       template: null,
       hidden: flag('hidden'),
       editTime: data[9],
@@ -161,15 +272,16 @@ function parseLongPollMessage(data, fromHistory) {
       isContentDeleted: !data[4] && !action && !hasAttachment,
       expireTtl: +data[5].expire_ttl || data[5].ttl || 0,
       isExpired: !!data[5].is_expired,
-      fromLongPoll: true,
-      // Нужно только для пометки сообщения как обязательное для получения через апи
-      hasTemplate: !!data[5].has_template
+      fromLongPoll: true
     }
   };
 }
 
-async function getLastMessage(peer_id) {
-  const { message, conversation } = await vkapi('execute.getLastMessage', {
+async function getLastMessage(peer_id: number) {
+  const { message, conversation } = await vkapi<
+    ExecuteGetLastMessage,
+    ExecuteGetLastMessageParams
+  >('execute.getLastMessage', {
     peer_id,
     func_v: 2
   });
@@ -186,12 +298,12 @@ async function getLastMessage(peer_id) {
   return { peer, msg };
 }
 
-async function loadMessages(peer_id, msg_ids, onlyReturnMessages) {
-  const { items } = await vkapi('messages.getById', {
+async function loadMessages(peer_id: number, msg_ids: number[], onlyReturnMessages?: boolean) {
+  const { items } = await vkapi<MessagesGetById, MessagesGetByIdParams>('messages.getById', {
     message_ids: msg_ids.join(',')
   });
 
-  const messages = [];
+  const messages: IParsedMessage[] = [];
 
   for (const msg of items) {
     const parsedMsg = parseMessage(msg);
@@ -209,7 +321,7 @@ async function loadMessages(peer_id, msg_ids, onlyReturnMessages) {
   return messages;
 }
 
-function hasSupportedAttachments(msg) {
+function hasSupportedAttachments(msg: ParseLongPollMessageResult['msg']) {
   if (msg.hasReplyMsg || msg.fwdCount || msg.hasTemplate) {
     return true;
   }
@@ -223,11 +335,11 @@ function hasSupportedAttachments(msg) {
   return false;
 }
 
-function hasPreloadMessages(conversations) {
-  return conversations.some(({ msg }) => hasSupportedAttachments(msg));
+function hasPreloadMessages(items: ParseLongPollMessageResult[]) {
+  return items.some(({ msg }) => hasSupportedAttachments(msg));
 }
 
-async function watchTyping(peer_id, user_id) {
+async function watchTyping(peer_id: number, user_id: number): Promise<void> {
   await timer(1000);
 
   const typingPeer = store.state.messages.typing[peer_id];
@@ -247,7 +359,7 @@ async function watchTyping(peer_id, user_id) {
   store.commit('messages/removeUserTyping', { peer_id, user_id });
 }
 
-function removeTyping(peer_id, user_id, clearChat) {
+function removeTyping(peer_id: number, user_id: number, clearChat?: boolean) {
   const typing = store.state.messages.typing[peer_id] || {};
 
   if (typing[user_id] || clearChat) {
@@ -259,6 +371,11 @@ function removeTyping(peer_id, user_id, clearChat) {
   }
 }
 
+interface PackedEvent<T> {
+  peer_id: number
+  items: T[]
+}
+
 export default {
   2: {
     // 1) Пометка важным (important)
@@ -268,7 +385,7 @@ export default {
     // 5) Удаление для всех (deleted, deleted_all)
     // [msg_id, flags, peer_id]
     pack: true,
-    parser(data) {
+    parser(data: [number, number, number]) {
       const flag = hasFlag(data[1]);
 
       // Так как в handler обрабатываются только пачки удаленных
@@ -287,7 +404,7 @@ export default {
         return data[0];
       }
     },
-    async handler({ peer_id, items: msg_ids }) {
+    async handler({ peer_id, items: msg_ids }: PackedEvent<number>) {
       const { peer, msg } = await getLastMessage(peer_id);
       const route = router.currentRoute.value;
 
@@ -327,7 +444,7 @@ export default {
     pack: true,
     parser: parseLongPollMessage,
     preload: hasPreloadMessages,
-    async handler({ peer_id, items }) {
+    async handler({ peer_id, items }: PackedEvent<ParseLongPollMessageResult>) {
       const conversation = store.state.messages.conversations[peer_id];
       const conversationsList = store.getters['messages/peersList'];
       const lastLocalConversation = conversationsList[conversationsList.length - 1];
@@ -335,8 +452,8 @@ export default {
       const [topMsg] = messagesList;
       const bottomMsg = messagesList[messagesList.length - 1];
       const { msg } = await getLastMessage(peer_id);
-      let unlockUp;
-      let unlockDown;
+      let unlockUp: boolean;
+      let unlockDown: boolean;
 
       if (!topMsg) {
         unlockUp = true;
@@ -393,14 +510,14 @@ export default {
     pack: true,
     parser: parseLongPollMessage,
     preload: hasPreloadMessages,
-    async handler({ peer_id, items }, isPreload) {
+    async handler({ peer_id, items }: PackedEvent<ParseLongPollMessageResult>, isPreload: boolean) {
       const { wasOpened, loading } = store.state.messages.peersConfig[peer_id] || {};
       const conversation = store.state.messages.conversations[peer_id];
       const localMessages = store.state.messages.messages[peer_id] || [];
       const lastLocalMsg = localMessages[localMessages.length - 1];
       let lastMsg = items[items.length - 1].msg;
       const messagesWithAttachments = [];
-      const peerData = {
+      const peerData: Partial<IParsedConversation> = {
         id: peer_id,
         last_msg_id: lastMsg.id,
         mentions: conversation && conversation.peer.mentions || []
@@ -416,8 +533,8 @@ export default {
           peer_id,
           addNew: true,
           messages: items
-            .filter((msg) => !hasPreloadMessages([msg]))
-            .map((peer) => peer.msg)
+            .filter((item) => !hasPreloadMessages([item]))
+            .map((item) => item.msg)
         });
       }
 
@@ -507,8 +624,8 @@ export default {
     // Редактирование сообщения
     // Приходит сообщение
     parser: parseLongPollMessage,
-    preload: (data) => hasPreloadMessages([data]),
-    async handler({ peer, msg }, isPreload) {
+    preload: (data: ParseLongPollMessageResult) => hasPreloadMessages([data]),
+    async handler({ peer, msg }: ParseLongPollMessageResult, isPreload: boolean) {
       const conversation = store.state.messages.conversations[peer.id];
       const messages = store.state.messages.messages[peer.id] || [];
       const isLastMsg = conversation && conversation.msg.id === msg.id;
@@ -524,7 +641,7 @@ export default {
         }
       }
 
-      const newConversationData = {
+      const newConversationData: Partial<ParseLongPollMessageResult> = {
         peer: {
           id: peer.id,
           mentions: conversation && conversation.peer.mentions || []
@@ -557,7 +674,7 @@ export default {
   6: {
     // Прочтение входящих сообщений до msg_id
     // [peer_id, msg_id, count]
-    handler([peer_id, msg_id, count]) {
+    handler([peer_id, msg_id, count]: [number, number, number]) {
       const conversation = store.state.messages.conversations[peer_id];
       const mentions = conversation && conversation.peer.mentions || [];
       const newMentions = mentions.slice();
@@ -584,7 +701,7 @@ export default {
   7: {
     // Прочтение исходящих сообщений до msg_id
     // [peer_id, msg_id, count]
-    handler([peer_id, msg_id]) {
+    handler([peer_id, msg_id]: [number, number]) {
       store.commit('messages/updateConversation', {
         peer: {
           id: peer_id,
@@ -599,7 +716,7 @@ export default {
     // Друг появился в сети
     // [-user_id, platform, timestamp, app_id]
     // platform: 1: любое приложение, 2: iphone, 3: ipad, 4: android, 5: wphone, 6: windows, 7: web
-    handler([id, platform, time, app_id]) {
+    handler([id, platform, time, app_id]: [number, number, number, number]) {
       if (!store.state.profiles[-id]) {
         return;
       }
@@ -618,7 +735,7 @@ export default {
     // Друг вышел из сети
     // [-user_id, isTimeout, timestamp, app_id]
     // isTimeout: 1 - вышел по таймауту, 0 - вышел из vk.com
-    handler([id, /* isTimeout */, time, app_id]) {
+    handler([id, /* isTimeout */, time, app_id]: [number, 0 | 1, number, number]) {
       if (!store.state.profiles[-id]) {
         return;
       }
@@ -646,7 +763,7 @@ export default {
   13: {
     // Удаление всех сообщений в диалоге
     // [peer_id, last_msg_id]
-    handler([peer_id]) {
+    handler([peer_id]: [number, number]) {
       store.commit('messages/removeConversationMessages', peer_id);
       store.commit('messages/updatePeersList', {
         id: peer_id,
@@ -665,8 +782,8 @@ export default {
     // 2. "Исчезновение сообщения" - удаление всего контента с добавлением ключа is_expired: true
     // Приходит сообщение
     parser: parseLongPollMessage,
-    preload: (data) => hasPreloadMessages([data]),
-    async handler({ peer, msg }, isPreload) {
+    preload: (data: ParseLongPollMessageResult) => hasPreloadMessages([data]),
+    async handler({ peer, msg }: ParseLongPollMessageResult, isPreload: boolean) {
       const conversation = store.state.messages.conversations[peer.id];
       const fullPeer = conversation && conversation.peer;
       const route = router.currentRoute.value;
@@ -700,7 +817,7 @@ export default {
     // Сброс кеша сообщения или исчезновение сообщения
     // [msg_id]
     // В первом случае необходимо переполучить сообщение через API
-    async handler([msg_id]) {
+    async handler([msg_id]: [number]) {
       const conversations = store.state.messages.messages;
 
       // Ждем, пока в 18 событии сообщение пометится как исчезнувшее,
@@ -728,7 +845,7 @@ export default {
   52: {
     // Изменение данных чата
     // [type, peer_id, extra]
-    handler([type, peer_id, extra]) {
+    handler([type, peer_id, extra]: [number, number, number]) {
       const isMe = extra === store.state.users.activeUser;
       const conversation = store.state.messages.conversations[peer_id];
       const peer = conversation && conversation.peer;
@@ -809,7 +926,7 @@ export default {
   63: {
     // Статус набора сообщения
     // [peer_id, [from_ids], ids_length, timestamp]
-    handler([peer_id, ids]) {
+    handler([peer_id, ids]: [number, number[], number, number]) {
       for (const id of ids) {
         if (id === store.state.users.activeUser) {
           continue;
@@ -829,7 +946,7 @@ export default {
   64: {
     // Статус записи голосового сообщения
     // [peer_id, [from_ids], ids_length, timestamp]
-    handler([peer_id, ids]) {
+    handler([peer_id, ids]: [number, number[], number, number]) {
       for (const id of ids) {
         if (id === store.state.users.activeUser) {
           continue;
@@ -850,7 +967,7 @@ export default {
     // Изменение количества непрочитанных диалогов
     // [count, count_with_notifications, 0, 0]
     // count_with_notifications: кол-во непрочитанных диалогов, в которых включены уведомления
-    handler([count]) {
+    handler([count]: [number, number, 0, 0]) {
       store.commit('updateMenuCounters', {
         name: 'messages',
         value: count
@@ -865,10 +982,10 @@ export default {
   },
 
   114: {
-    // Изменеие настроек пуш-уведомлений в беседе
+    // Изменение настроек пуш-уведомлений в беседе
     // [{ peer_id, sound, disabled_until }]
     // disabled_until: -1 - выключены; 0 - включены; * - время их включения
-    handler([{ peer_id, disabled_until }]) {
+    handler([{ peer_id, disabled_until }]: [VKConversationPushSettings]) {
       if (!store.state.messages.conversations[peer_id]) {
         return;
       }

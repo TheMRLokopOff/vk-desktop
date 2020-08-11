@@ -1,7 +1,6 @@
 export interface VKKeyboard {
   author_id: number
   one_time: boolean
-  inline?: true
   buttons?: VKKeyboardButton[][]
 }
 

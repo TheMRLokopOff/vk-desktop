@@ -1,6 +1,6 @@
-import { VKUser, VKGroup, VKConversation, VKMessage } from '..';
+import { VKUser, VKGroup, VKConversation, VKMessage, VKConversationPushSettings } from '..';
 import { MessagesGetLongPollServer } from './messages';
-import { AccountGetCounters, AccountGetPushSettings } from './account';
+import { AccountGetCounters } from './account';
 
 export interface ExecuteInit {
   user: VKUser
@@ -12,7 +12,7 @@ export interface ExecuteInit {
   profiles: VKUser[]
   groups: VKGroup[]
   lp: MessagesGetLongPollServer
-  temporarilyDisabledNotifications: AccountGetPushSettings['conversations']['items']
+  temporarilyDisabledNotifications: VKConversationPushSettings[]
   firstConversations: {
     conversation: VKConversation
     /**
@@ -27,11 +27,24 @@ export interface ExecuteInitParams {
   fields?: string
 }
 
+/** ********************************************************************************************* */
 
 export type ExecuteGetProfiles = (VKUser | VKGroup)[];
 
 export interface ExecuteGetProfilesParams {
   profile_ids: number | string
   fields?: string
+  func_v: 2
+}
+
+/** ********************************************************************************************* */
+
+export interface ExecuteGetLastMessage {
+  conversation: VKConversation
+  message: VKMessage | null
+}
+
+export interface ExecuteGetLastMessageParams {
+  peer_id: number
   func_v: 2
 }

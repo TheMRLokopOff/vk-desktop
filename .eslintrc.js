@@ -1,5 +1,3 @@
-const path = require('path');
-
 module.exports = {
   root: true,
 
@@ -108,7 +106,7 @@ module.exports = {
     }],
     'no-multi-str': 'error',
     'no-multiple-empty-lines': ['error', {
-      max: 2
+      max: 1
     }],
     'no-new-object': 'error',
     'no-new-symbol': 'error',
@@ -136,7 +134,6 @@ module.exports = {
     'no-unused-expressions': ['error', {
       allowShortCircuit: true
     }],
-    'no-unused-vars': 'error',
     'no-useless-catch': 'error',
     'no-useless-computed-key': ['error', {
       enforceForClassMembers: true
