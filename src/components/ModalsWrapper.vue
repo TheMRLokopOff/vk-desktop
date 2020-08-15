@@ -9,10 +9,10 @@
 </template>
 
 <script lang="ts">
-import { toRefs } from 'vue';
+import { defineComponent, toRefs } from 'vue';
 import { modalsState, closeModal } from 'js/modals';
 
-const modalComponents = {};
+const modalComponents: Record<string, ReturnType<typeof defineComponent>> = {};
 const modalNames = [
   'Auth',
   'BlockedAccount',
@@ -30,16 +30,16 @@ for (const name of modalNames) {
   modalComponents[name] = require(`./modals/${name}.vue`).default;
 }
 
-export default {
+export default defineComponent({
   components: modalComponents,
 
   setup() {
-    function onClickToBg({ target }) {
+    function onClickToBg({ target }: MouseEvent & { target: HTMLElement }) {
       if (!target.matches('.modal_wrap')) {
         return;
       }
 
-      const [modal] = target.children;
+      const [modal] = target.children as unknown as HTMLElement[];
       const header = modal.querySelector('.modal_header');
 
       if (!header || header.getAttribute('closable') !== 'false') {
@@ -64,7 +64,7 @@ export default {
       onEscape
     };
   }
-};
+});
 </script>
 
 <style>

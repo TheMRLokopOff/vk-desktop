@@ -36,7 +36,6 @@ import ContextMenuWrapper from './ContextMenus/ContextMenuWrapper.vue';
 import SnackbarsWrapper from './SnackbarsWrapper.vue';
 import TooltipsWrapper from './TooltipsWrapper.vue';
 
-// Для разработки и отлова ошибок
 (window as any).vkapi = vkapi;
 (window as any).store = store;
 (window as any).router = router;
@@ -57,7 +56,7 @@ export default defineComponent({
   setup() {
     const state = reactive({
       mac: process.platform === 'darwin',
-      activeUser: computed(() => store.state.users.activeUser)
+      activeUser: computed<number | null>(() => store.state.users.activeUser)
     });
 
     async function initUser() {

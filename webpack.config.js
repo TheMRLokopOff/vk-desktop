@@ -90,8 +90,7 @@ module.exports = function(env, { mode = 'development' } = {}) {
               options: { hmr: isDev }
             },
             'css-loader'
-          ],
-          include: path.resolve(__dirname, 'src/css'),
+          ]
         },
         {
           test: /\.(png|webp|svg|gif|ttf)$/,

@@ -6,6 +6,10 @@ import {
 } from '.';
 import { VKAttachment } from './attachments';
 
+export interface IEventAddon {
+  path: (HTMLElement | HTMLDocument | Window)[]
+}
+
 export interface IAccount extends VKUser {
   access_token: string
   android_token: string

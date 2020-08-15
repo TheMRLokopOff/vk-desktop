@@ -15,19 +15,19 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { currentWindow } from 'js/utils';
 
 import Icon from './UI/Icon.vue';
 
-export default {
+export default defineComponent({
   components: {
     Icon
   },
 
   setup() {
-    const maximized = ref(currentWindow.isMaximized());
-    const drag = ref(null);
+    const maximized = ref<boolean>(currentWindow.isMaximized());
+    const drag = ref<HTMLDivElement>(null);
 
     onMounted(() => {
       if (process.platform === 'darwin') {
@@ -54,10 +54,10 @@ export default {
       maximized,
       drag,
       isMac: process.platform === 'darwin',
-      click: (button) => currentWindow[button]()
+      click: (button: string) => currentWindow[button]()
     };
   }
-};
+});
 </script>
 
 <style>

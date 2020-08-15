@@ -17,11 +17,12 @@
 </template>
 
 <script lang="ts">
+import { defineComponent } from 'vue';
 import { snackbarsState } from 'js/snackbars';
 
 import Icon from './UI/Icon.vue';
 
-export default {
+export default defineComponent({
   components: {
     Icon
   },
@@ -29,7 +30,7 @@ export default {
   setup() {
     return snackbarsState;
   }
-};
+});
 </script>
 
 <style>

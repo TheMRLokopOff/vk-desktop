@@ -2,37 +2,43 @@
   <Transition name="fade-out">
     <div v-if="text">
       <div class="tooltip_arrow" :style="arrowPosition"></div>
-      <div ref="tooltip" class="tooltip_text" :style="position">{{ text }}</div>
+      <div ref="tooltip" class="tooltip_text" :style="textPosition">{{ text }}</div>
     </div>
   </Transition>
 </template>
 
 <script lang="ts">
-import { reactive, nextTick } from 'vue';
+import { defineComponent, reactive, nextTick } from 'vue';
 import getTranslate from 'js/getTranslate';
+import { IEventAddon } from 'types/internal';
 
-export default {
+export default defineComponent({
   setup() {
-    const state = reactive({
+    interface IState {
+      tooltip: HTMLDivElement | null
+      text: string
+      arrowPosition: Record<string, string>
+      textPosition: Record<string, string>
+    }
+
+    const state = reactive<IState>({
       tooltip: null,
-      text: null,
+      text: '',
       arrowPosition: {},
-      position: {}
+      textPosition: {}
     });
 
-    function setPosition(el) {
-      const [titlebar, app] = document.querySelector('.root').children;
+    function setPosition(el: HTMLElement) {
+      const [titlebar, app] = document.querySelector('.root').children as unknown as HTMLDivElement[];
       const { clientWidth } = app;
-      const { width: tooltipWidth } = state.tooltip.getBoundingClientRect();
+      const { width: tooltipWidth }: DOMRect = state.tooltip.getBoundingClientRect();
       let { x, y, width, height } = el.getBoundingClientRect();
 
       const centerElX = x + width / 2;
       const maxTooltipRight = clientWidth - tooltipWidth - 8;
 
-      // Вычитаем из координаты высоту тайтлбара, т.к.
-      // враппер контекстного меню имеет высоту в виде
-      // <высота приложения> - <высота тайтлбара>,
-      // а координаты приходят с верхней точки приложения
+      // Вычитаем из координаты высоту тайтлбара, т.к. враппер контекстного меню имеет высоту в виде
+      // <высота приложения> - <высота тайтлбара>, а координаты приходят с верхней точки приложения
       y -= titlebar.clientHeight - height;
       // Центруем тултип по центру элемента
       x = centerElX - tooltipWidth / 2;
@@ -41,7 +47,7 @@ export default {
         x = maxTooltipRight;
       }
 
-      state.position = {
+      state.textPosition = {
         left: x + 'px',
         top: y + 'px'
       };
@@ -52,10 +58,10 @@ export default {
       };
     }
 
-    let prevEl;
+    let prevEl: HTMLElement;
 
-    window.addEventListener('mousemove', async (event) => {
-      const el = event.path.find((el) => el.dataset && el.dataset.tooltip);
+    window.addEventListener('mousemove', async (event: MouseEvent & IEventAddon) => {
+      const el = event.path.find((el) => ('dataset' in el) && el.dataset.tooltip) as HTMLElement;
 
       if (el && prevEl !== el) {
         state.text = getTranslate(el.dataset.tooltip);
@@ -70,7 +76,7 @@ export default {
 
     return state;
   }
-};
+});
 </script>
 
 <style>

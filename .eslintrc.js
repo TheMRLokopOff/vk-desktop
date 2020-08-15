@@ -28,8 +28,8 @@ module.exports = {
     'plugin:vue/vue3-recommended',
     // Поддержка TypeScript
     'plugin:import/typescript',
-    'plugin:@typescript-eslint/recommended'
-    // 'plugin:@typescript-eslint/recommended-requiring-type-checking'
+    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking'
   ],
 
   rules: {
@@ -239,7 +239,7 @@ module.exports = {
     }],
 
     // TypeScript (пока отключаю все ошибки, потому что заниматься самим TS буду в другой раз)
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    // '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-explicit-any': 'off',

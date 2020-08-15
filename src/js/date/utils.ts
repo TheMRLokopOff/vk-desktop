@@ -1,11 +1,11 @@
 import getTranslate from '../getTranslate';
 
-function floor(num) {
+function floor(num: number) {
   return num < 0 ? Math.ceil(num) : Math.floor(num);
 }
 
-export function format(date: Date, mask) {
-  const addZero = (num) => (num < 10 ? '0' + num : num);
+export function format(date: Date, mask: string) {
+  const addZero = (num: number) => (num < 10 ? '0' + num : '' + num);
   const months = getTranslate('months');
 
   const tokens = {
@@ -36,30 +36,41 @@ export function format(date: Date, mask) {
     s: () => date.getSeconds()
   };
 
-  Object.entries(tokens).forEach(([token, replacer]) => {
+  Object.entries(tokens).forEach(([token, replacer]: [string, () => string]) => {
     mask = mask.replace(token, replacer);
   });
 
   return mask;
 }
 
-function copyDate(date) {
+type DateLike = number | Date;
+
+function copyDate(date: DateLike) {
   return new Date(typeof date === 'number' ? date : date.getTime());
 }
 
-function startOfDay(date) {
+/**
+ *
+ */
+function startOfDay(date: DateLike) {
   const copy = copyDate(date);
   copy.setHours(0, 0, 0, 0);
   return copy;
 }
 
-function addDays(date, count) {
+/**
+ *
+ */
+function addDays(date: DateLike, count: number) {
   const copy = copyDate(date);
   copy.setDate(copy.getDate() + count);
   return copy;
 }
 
-function compareAsc(d1, d2) {
+/**
+ *
+ */
+function compareAsc(d1: Date, d2: Date) {
   const diff = differenceInMilliseconds(d1, d2);
 
   if (diff < 0) {
@@ -73,39 +84,46 @@ function compareAsc(d1, d2) {
   return 0;
 }
 
-export function isSameDay(d1, d2) {
+export function isSameDay(d1: DateLike, d2: DateLike) {
   return startOfDay(d1).getTime() === startOfDay(d2).getTime();
 }
 
-export function isYesterday(date) {
+export function isYesterday(date: DateLike) {
   return isSameDay(date, addDays(Date.now(), -1));
 }
 
-function differenceInMilliseconds(d1, d2) {
+// TODO поправить все difference*, чтобы вызывать меньше функций и уменьшить погрешность
+function differenceInMilliseconds(d1: Date, d2: Date) {
   return d1.getTime() - d2.getTime();
 }
 
-export function differenceInSeconds(d1, d2) {
+export function differenceInSeconds(d1: Date, d2: Date) {
   return floor(differenceInMilliseconds(d1, d2) / 1000);
 }
 
-export function differenceInMinutes(d1, d2) {
+export function differenceInMinutes(d1: Date, d2: Date) {
   return floor(differenceInSeconds(d1, d2) / 60);
 }
 
-export function differenceInHours(d1, d2) {
+export function differenceInHours(d1: Date, d2: Date) {
   return floor(differenceInMinutes(d1, d2) / 60);
 }
 
-export function differenceInDays(d1, d2) {
+export function differenceInDays(d1: Date, d2: Date) {
   return floor(differenceInHours(d1, d2) / 24);
 }
 
-function differenceInCalendarMonths(d1, d2) {
+/**
+ *
+ */
+function differenceInCalendarMonths(d1: Date, d2: Date) {
   return differenceInYears(d1, d2) * 12 + d1.getMonth() - d2.getMonth();
 }
 
-export function differenceInMonths(d1, d2) {
+/**
+ *
+ */
+export function differenceInMonths(d1: Date, d2: Date) {
   const sign = compareAsc(d1, d2);
   const diff = differenceInCalendarMonths(d1, d2);
   const d1Copy = copyDate(d1);
@@ -114,14 +132,21 @@ export function differenceInMonths(d1, d2) {
 
   const isLastMonthNotFull = compareAsc(d1Copy, d2) === -sign;
 
-  return sign * (diff - isLastMonthNotFull);
+  return sign * (diff - (isLastMonthNotFull ? 1 : 0));
 }
 
-export function differenceInYears(d1, d2) {
+/**
+ *
+ */
+export function differenceInYears(d1: Date, d2: Date) {
   return d1.getFullYear() - d2.getFullYear();
 }
 
-// Поддерживаются минуты и часы
+/**
+ * TODO описание
+ *
+ * Поддерживаются минуты и часы.
+ */
 export function formatDistance(d1, d2) {
   const seconds = differenceInSeconds(d1, d2);
 
