@@ -1,6 +1,7 @@
 import { promises as dns } from 'dns';
 import https from 'https';
 import { timer, isObject } from './utils';
+import config from './conifg';
 
 // Возможные варианты передачи параметров:
 // 1. request(paramsOrUrl, options?)
@@ -119,7 +120,7 @@ let waitConnectionPromise;
 async function waitConnection() {
   while (true) {
     try {
-      await dns.lookup('api.vk.com');
+      await dns.lookup(config.apiDomain);
       waitConnectionPromise = null;
       break;
     } catch {

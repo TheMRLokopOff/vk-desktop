@@ -3,6 +3,7 @@ import { VKDesktopUserAgent, AndroidUserAgent, toUrlParams } from './utils';
 import { openModal } from './modals';
 import store from './store';
 import request from './request';
+import conifg from './conifg';
 
 export const version = '5.135';
 
@@ -156,7 +157,7 @@ function vkapi(name, params, { android, vkme } = {}) {
     };
 
     const { data } = await request({
-      host: vkme ? 'api.vk.me' : 'api.vk.com',
+      host: vkme ? 'api.vk.me' : conifg.apiUrl,
       path: `/method/${name}`,
       method: 'POST',
       headers: {
